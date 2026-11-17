@@ -404,7 +404,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
     );
     final dialogHeight = math.min(
       630.0,
-      (viewport.height - 24).clamp(0.0, 630.0).toDouble(),
+      (viewport.height - 71).clamp(280.0, 630.0).toDouble(),
     );
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -762,7 +762,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           ],
           const Text(
             'الأسعار الإضافية مستقلة عن السعر الأول؛ تركها بصفر لا يغيّر السعر الافتراضي.',
-            style: TextStyle(fontSize: 11.5, color: _mutedInk),
+            style: TextStyle(fontSize: 11.5, color: Color(0xFFE2F8EB)),
           ),
         ],
       ),
@@ -807,7 +807,10 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
               child: Container(
                 color: Colors.white,
                 child: TextField(
-                  style: const TextStyle(fontSize: 12.5, color: _ink),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF1A1A1A),
+                  ),
                   textAlignVertical: TextAlignVertical.center,
                   onChanged: (v) => setState(() => _categoryFilter = v),
                   decoration: const InputDecoration(
@@ -815,7 +818,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                     filled: false,
                     border: InputBorder.none,
                     hintText: 'التصنيف',
-                    hintStyle: TextStyle(fontSize: 12.5, color: _mutedInk),
+                    hintStyle: TextStyle(fontSize: 12.5, color: Color(0xFF8AA591)),
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 7,
@@ -830,7 +833,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                 ? const Center(
                     child: Text(
                       'لا توجد تصنيفات',
-                      style: TextStyle(fontSize: 12, color: _mutedInk),
+                      style: TextStyle(fontSize: 12, color: Color(0xFFE2F8EB)),
                     ),
                   )
                 : ListView.builder(
@@ -849,7 +852,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Row(
                               children: [
-                                _checkboxGlyph(checked: selected),
+                                _checkboxGlyph(checked: selected, onGreen: true),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -858,7 +861,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       fontSize: 12.5,
-                                      color: _ink,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
@@ -927,7 +930,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                       'آخر كمية للصنف',
                       style: const TextStyle(
                         fontSize: 12.5,
-                        color: _ink,
+                        color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -940,7 +943,10 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                       child: TextField(
                         controller: _lastQty,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(fontSize: 12.5, color: _ink),
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF1A1A1A),
+                        ),
                         textAlignVertical: TextAlignVertical.center,
                         decoration: const InputDecoration(
                           isDense: true,
@@ -1016,7 +1022,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           ? const Center(
               child: Text(
                 'لا توجد وحدات مسجلة',
-                style: TextStyle(fontSize: 12, color: _mutedInk),
+                style: TextStyle(fontSize: 12, color: Color(0xFFE2F8EB)),
               ),
             )
           : ListView.builder(
@@ -1034,19 +1040,22 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Row(
                         children: [
-                          _checkboxGlyph(checked: selected),
+                          _checkboxGlyph(checked: selected, onGreen: true),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               unit['name'] as String? ?? '',
-                              style: const TextStyle(fontSize: 13, color: _ink),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           Text(
                             unit['abbreviation'] as String? ?? '',
                             style: const TextStyle(
                               fontSize: 11.5,
-                              color: _mutedInk,
+                              color: Color(0xFFE2F8EB),
                             ),
                           ),
                         ],
@@ -1130,7 +1139,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
             style: const TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: _ink,
+              color: Colors.white,
             ),
           ),
         ),
@@ -1141,7 +1150,10 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
             color: Colors.white,
             child: TextField(
               controller: controller,
-              style: const TextStyle(fontSize: 12.5, color: _ink),
+              style: const TextStyle(
+                fontSize: 12.5,
+                color: Color(0xFF1A1A1A),
+              ),
               textAlignVertical: TextAlignVertical.center,
               decoration: const InputDecoration(
                 isDense: true,
@@ -1173,7 +1185,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
               height: 28,
               child: Center(
                 child: CustomPaint(
-                  painter: _CodeGlyphPainter(type: glyph, color: _primary),
+                  painter: _CodeGlyphPainter(type: glyph),
                   size: const Size(14, 14),
                 ),
               ),
@@ -1193,12 +1205,12 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             children: [
-              _checkboxGlyph(checked: value),
+              _checkboxGlyph(checked: value, onGreen: true),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 12.5, color: _ink),
+                  style: const TextStyle(fontSize: 12.5, color: Colors.white),
                 ),
               ),
             ],
@@ -1208,17 +1220,19 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
     );
   }
 
-  Widget _checkboxGlyph({required bool checked}) {
+  Widget _checkboxGlyph({required bool checked, bool onGreen = false}) {
     return Container(
       width: 15,
       height: 15,
       decoration: BoxDecoration(
-        color: checked ? _primary : Colors.transparent,
-        border: Border.all(color: checked ? _primary : _mutedInk),
+        color: checked ? Colors.white : Colors.transparent,
+        border: Border.all(
+          color: onGreen ? Colors.white : const Color(0xFF7FBF90),
+        ),
         borderRadius: BorderRadius.circular(2),
       ),
       child: checked
-          ? const Icon(Icons.check, size: 12, color: Colors.white)
+          ? const Icon(Icons.check, size: 12, color: Color(0xFF2FB753))
           : null,
     );
   }
@@ -1232,7 +1246,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
         onTap: () => setState(() => _panelsVisible = !_panelsVisible),
         child: Container(
           width: 26,
-          color: _primary,
+          color: const Color(0xFF2FB753),
           child: Center(
             child: CustomPaint(
               painter: _CollapsePainter(
