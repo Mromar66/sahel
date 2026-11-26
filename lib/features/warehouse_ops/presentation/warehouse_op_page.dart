@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/product_search_field.dart';
-import 'package:inventory_app/app/widgets/shared_data_grid.dart';
-import 'package:inventory_app/app/widgets/shop_command_rail.dart';
-import 'package:inventory_app/app/widgets/shop_dialog_kit.dart';
-import 'package:inventory_app/app/widgets/shop_dialogs.dart';
-import 'package:inventory_app/app/widgets/shop_footer_bar.dart';
-import 'package:inventory_app/app/widgets/document_custom_fields.dart';
-import 'package:inventory_app/core/services/shop_preferences.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
-import 'package:inventory_app/features/warehouse_ops/data/warehouse_ops_repository.dart';
-import 'package:inventory_app/features/warehouse_ops/domain/warehouse_op_models.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/product_search_field.dart';
+import 'package:safwa/app/widgets/shared_data_grid.dart';
+import 'package:safwa/app/widgets/shop_command_rail.dart';
+import 'package:safwa/app/widgets/shop_dialog_kit.dart';
+import 'package:safwa/app/widgets/shop_dialogs.dart';
+import 'package:safwa/app/widgets/shop_footer_bar.dart';
+import 'package:safwa/app/widgets/document_custom_fields.dart';
+import 'package:safwa/core/services/shop_preferences.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/features/warehouse_ops/data/warehouse_ops_repository.dart';
+import 'package:safwa/features/warehouse_ops/domain/warehouse_op_models.dart';
 
 part 'warehouse_op_layout.dart';
 part 'warehouse_op_table.dart';
@@ -235,6 +235,7 @@ class _WarehouseOpPageState extends State<WarehouseOpPage> {
   }
 
   void _close() {
+    removeCurrentAppTab(context);
     if (context.canPop()) {
       context.pop();
     } else {

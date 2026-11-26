@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 const Color _kGreen = ShopColors.panelGreen;
 const Color _kYellow = ShopColors.yellow;
@@ -13,7 +13,7 @@ const Color _kBlue = Color(0xFF1E5FC7);
 const Color _kGreyText = Color(0xFF8A8A8A);
 const Color _kRowLine = Color(0xFFEAEAEA);
 
-/// The Sahl reports launcher.
+/// The Safwa reports launcher.
 ///
 /// The page is deliberately a plain white list, exactly like the reference:
 /// a green title on the right, a close button on the left and four report
@@ -61,7 +61,14 @@ class _ReportsPageState extends State<ReportsPage> {
     super.dispose();
   }
 
-  void _close() => context.go('/');
+  void _close() {
+    removeCurrentAppTab(context);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
 
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;

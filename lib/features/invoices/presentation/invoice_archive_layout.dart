@@ -154,7 +154,7 @@ extension _InvoiceArchiveLayout on _InvoiceArchivePageState {
               color: active
                   ? _kGreen
                   : hovered
-                  ? const Color(0xFFE6F6EC)
+                  ? const Color(0xFFF7F9FA)
                   : const Color(0xFFF2F2F2),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(7),
@@ -162,7 +162,7 @@ extension _InvoiceArchiveLayout on _InvoiceArchivePageState {
               border: Border(
                 top: BorderSide(
                   color: active
-                      ? const Color(0xFF23A846)
+                      ? const Color(0xFF43B5DB)
                       : const Color(0xFFE1E1E1),
                   width: 2,
                 ),

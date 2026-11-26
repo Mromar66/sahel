@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:inventory_app/core/services/database_service.dart';
+import 'package:safwa/core/services/database_service.dart';
 
 /// Utility class for currency formatting and integer-based monetary storage.
 class CurrencyUtils {

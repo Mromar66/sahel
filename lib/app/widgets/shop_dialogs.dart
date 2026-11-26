@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/models/product_search_item.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/barcode_glyph.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/shop_dialog_kit.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/app/models/product_search_item.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/barcode_glyph.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/shop_dialog_kit.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
 
 // -----------------------------------------------------------------------------
 // Quick product list / category list.
@@ -156,7 +156,7 @@ class _QuickProductDialogState<T extends ProductSearchItem>
                                           '${product.purchasePrice}',
                                           style: const TextStyle(
                                             fontSize: 11.5,
-                                            color: Color(0xFF336641),
+                                            color: Color(0xFF43B5DB),
                                           ),
                                         ),
                                         const SizedBox(width: 8),

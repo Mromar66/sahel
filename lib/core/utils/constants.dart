@@ -79,5 +79,6 @@ class AppRoutes {
   static const String dailyMovement = '/daily-movement';
   static const String salesAnalysis = '/sales-analysis';
   static const String settings = '/settings';
+  static const String userDashboard = '/user-dashboard';
   static const String backup = '/backup';
 }

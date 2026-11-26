@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 /// One column of the Excel-like grid. [editable] columns open an inline numeric
 /// editor when clicked and are visited by Tab / Shift+Tab.
@@ -159,6 +159,11 @@ class SharedDataGrid<T> extends StatefulWidget {
     this.onEditFinished,
     this.emptyMessage = 'ابدأ بالبحث عن صنف بالإسم أو بالكود',
     this.emptyEditMessage = 'أضف صنفاً أولاً ثم عدّل الكمية أو السعر.',
+    this.salesStyle = false,
+    this.footerCellText,
+    this.newRowChild,
+    this.newRowColumn = 0,
+    this.newRowAtEnd = false,
   });
 
   final SharedDataGridController<T> controller;
@@ -174,12 +179,26 @@ class SharedDataGrid<T> extends StatefulWidget {
   /// Toast shown when F5/F6 is pressed with an empty grid.
   final String emptyEditMessage;
 
+  /// Sales invoices use the rounded blue header and striped rows from DEXEF.
+  /// Other document grids keep their current appearance.
+  final bool salesStyle;
+
+  /// Optional summary values aligned to their column indices.
+  final String? Function(int column)? footerCellText;
+
+  /// Optional entry control shown as an extra row in the grid body.
+  final Widget? newRowChild;
+  final int newRowColumn;
+
+  /// Places the entry row after existing records when true, otherwise before.
+  final bool newRowAtEnd;
+
   @override
   State<SharedDataGrid<T>> createState() => SharedDataGridState<T>();
 }
 
 class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
-  static const double _rowHeight = 24;
+  double get _rowHeight => widget.salesStyle ? 28 : 24;
 
   final _hCtrl = ScrollController();
   final _vCtrl = ScrollController();
@@ -242,7 +261,23 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
   void scrollToSelected() {
     final index = _controller.selectedIndex;
     if (index < 0 || !_vCtrl.hasClients) return;
-    final target = (index * _rowHeight).clamp(
+    final entryOffset = widget.newRowChild == null || widget.newRowAtEnd
+        ? 0
+        : 1;
+    final target = ((index + entryOffset) * _rowHeight).clamp(
+      0.0,
+      _vCtrl.position.maxScrollExtent,
+    );
+    _vCtrl.animateTo(
+      target,
+      duration: const Duration(milliseconds: 140),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void scrollToEntryRow() {
+    if (widget.newRowChild == null || !_vCtrl.hasClients) return;
+    final target = (_controller.rows.length * _rowHeight).clamp(
       0.0,
       _vCtrl.position.maxScrollExtent,
     );
@@ -328,7 +363,10 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
     }
     _beginEdit(nextRow, nextCol);
     if (_vCtrl.hasClients) {
-      final target = (nextRow * _rowHeight).clamp(
+      final entryOffset = widget.newRowChild == null || widget.newRowAtEnd
+          ? 0
+          : 1;
+      final target = ((nextRow + entryOffset) * _rowHeight).clamp(
         0.0,
         _vCtrl.position.maxScrollExtent,
       );
@@ -446,16 +484,20 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
 
   Widget _buildHeader(double extra) {
     return SizedBox(
-      height: 24,
+      height: widget.salesStyle ? 30 : 24,
       child: Row(
         textDirection: TextDirection.rtl,
         children: [
           SizedBox(
             width: SharedDataGridController.caretWidth,
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(left: BorderSide(color: ShopColors.header)),
+              decoration: BoxDecoration(
+                color: widget.salesStyle
+                    ? const Color(0xFFDCE9FF)
+                    : Colors.white,
+                border: const Border(
+                  left: BorderSide(color: ShopColors.header),
+                ),
               ),
               alignment: Alignment.center,
               child: GestureDetector(
@@ -485,9 +527,14 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
       child: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
-              color: ShopColors.header,
-              border: Border(left: BorderSide(color: Colors.white)),
+            decoration: BoxDecoration(
+              color: widget.salesStyle
+                  ? const Color(0xFFDCE9FF)
+                  : ShopColors.header,
+              border: const Border(left: BorderSide(color: Colors.white)),
+              borderRadius: widget.salesStyle
+                  ? BorderRadius.circular(7)
+                  : BorderRadius.zero,
             ),
             alignment: Alignment.center,
             child: Text(
@@ -522,6 +569,7 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
   }
 
   Widget _buildBand(double extra) {
+    if (widget.salesStyle) return const SizedBox.shrink();
     return SizedBox(
       height: 27,
       child: Row(
@@ -552,7 +600,7 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
   }
 
   Widget _buildBody(double extra) {
-    if (_controller.rows.isEmpty) {
+    if (_controller.rows.isEmpty && widget.newRowChild == null) {
       return Container(
         color: Colors.white,
         child: Stack(
@@ -562,46 +610,113 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
               alignment: Alignment.topCenter,
               child: Padding(
                 padding: const EdgeInsets.only(top: 9),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 26,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFDFDFDF)),
-                  ),
-                  child: Text(
-                    widget.emptyMessage,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF8A8A8A),
-                    ),
-                  ),
-                ),
+                child: widget.salesStyle
+                    ? Text(
+                        widget.emptyMessage,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF8797AC),
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 26,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFFDFDFDF)),
+                        ),
+                        child: Text(
+                          widget.emptyMessage,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF8A8A8A),
+                          ),
+                        ),
+                      ),
               ),
             ),
           ],
         ),
       );
     }
-    return Scrollbar(
-      controller: _vCtrl,
-      thumbVisibility: true,
-      thickness: 10,
-      radius: Radius.zero,
-      child: ListView.builder(
-        controller: _vCtrl,
-        padding: EdgeInsets.zero,
-        itemExtent: _rowHeight,
-        itemCount: _controller.rows.length,
-        itemBuilder: (context, index) => _row(index, extra),
+    return Stack(
+      children: [
+        if (widget.salesStyle && _controller.rows.isEmpty)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ListView.builder(
+                primary: false,
+                physics: const NeverScrollableScrollPhysics(),
+                itemExtent: _rowHeight,
+                itemCount: 500,
+                itemBuilder: (context, index) => ColoredBox(
+                  color: index.isOdd ? const Color(0xFFF1F4F9) : Colors.white,
+                ),
+              ),
+            ),
+          ),
+        Scrollbar(
+          controller: _vCtrl,
+          thumbVisibility: true,
+          thickness: 10,
+          radius: Radius.zero,
+          child: ListView.builder(
+            controller: _vCtrl,
+            padding: EdgeInsets.zero,
+            itemExtent: _rowHeight,
+            itemCount:
+                _controller.rows.length + (widget.newRowChild == null ? 0 : 1),
+            itemBuilder: (context, index) {
+              if (widget.newRowChild != null &&
+                  index == (widget.newRowAtEnd ? _controller.rows.length : 0)) {
+                return _newEntryRow(extra);
+              }
+              final rowIndex =
+                  index -
+                  (widget.newRowChild != null && !widget.newRowAtEnd ? 1 : 0);
+              return _row(rowIndex, extra);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _newEntryRow(double extra) {
+    return Container(
+      height: _rowHeight,
+      color: Colors.white,
+      child: Row(
+        textDirection: TextDirection.rtl,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: SharedDataGridController.caretWidth,
+            decoration: const BoxDecoration(
+              border: Border(left: BorderSide(color: ShopColors.header)),
+            ),
+          ),
+          for (var i = 0; i < _controller.widths.length; i++)
+            Container(
+              width: _controller.widths[i],
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                border: Border(left: BorderSide(color: Color(0xFFE8E8E8))),
+              ),
+              child: i == widget.newRowColumn
+                  ? widget.newRowChild
+                  : const SizedBox.shrink(),
+            ),
+          SizedBox(width: extra),
+        ],
       ),
     );
   }
 
   Widget _emptyGrid(double extra) {
-    return Row(
+    final columns = Row(
       textDirection: TextDirection.rtl,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -621,6 +736,24 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
         SizedBox(width: extra),
       ],
     );
+    if (!widget.salesStyle) return columns;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        IgnorePointer(
+          child: ListView.builder(
+            primary: false,
+            physics: const NeverScrollableScrollPhysics(),
+            itemExtent: _rowHeight,
+            itemCount: 500,
+            itemBuilder: (context, index) => ColoredBox(
+              color: index.isOdd ? const Color(0xFFF1F4F9) : Colors.white,
+            ),
+          ),
+        ),
+        columns,
+      ],
+    );
   }
 
   Widget _row(int index, double extra) {
@@ -633,8 +766,16 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
         child: Container(
           height: _rowHeight,
           color: selected
-              ? ShopColors.rowSelected
-              : (hovered ? ShopColors.rowHover : Colors.white),
+              ? (widget.salesStyle
+                    ? const Color(0xFFD2E3FC)
+                    : ShopColors.rowSelected)
+              : hovered
+              ? (widget.salesStyle
+                    ? const Color(0xFFE8F0FE)
+                    : ShopColors.rowHover)
+              : (widget.salesStyle && index.isOdd
+                    ? const Color(0xFFF1F4F9)
+                    : Colors.white),
           child: Row(
             textDirection: TextDirection.rtl,
             children: [
@@ -734,6 +875,46 @@ class SharedDataGridState<T> extends State<SharedDataGrid<T>> {
   }
 
   Widget _buildStrip(double extra) {
+    if (widget.salesStyle) {
+      return SizedBox(
+        height: 24,
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            Container(
+              width: SharedDataGridController.caretWidth,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE3E7ED),
+                border: Border(left: BorderSide(color: Colors.white)),
+              ),
+            ),
+            for (var i = 0; i < _controller.widths.length; i++)
+              Container(
+                width: _controller.widths[i],
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE3E7ED),
+                  border: Border(left: BorderSide(color: Colors.white)),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.footerCellText?.call(i) ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: ShopColors.ink,
+                  ),
+                ),
+              ),
+            SizedBox(
+              width: extra,
+              child: Container(color: Colors.white),
+            ),
+          ],
+        ),
+      );
+    }
     return SizedBox(
       height: 18,
       child: Container(

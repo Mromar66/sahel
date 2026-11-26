@@ -1,4 +1,4 @@
-import 'package:inventory_app/core/services/database_service.dart';
+import 'package:safwa/core/services/database_service.dart';
 
 /// Persistent defaults shared by the invoice and inventory operation screens.
 class ShopPreferences {

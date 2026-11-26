@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
 
 Future<Map<int, String>?> showDocumentCustomFieldsDialog(
   BuildContext context, {
@@ -14,7 +14,7 @@ Future<Map<int, String>?> showDocumentCustomFieldsDialog(
       builder: (context) => AlertDialog(
         title: const Text('الحقول الإضافية'),
         content: const Text(
-          'أضف حقولاً من تبويب «حقول إضافية» في إعداد صفو أولاً.',
+          'أضف حقولاً من تبويب «حقول إضافية» في إعداد Safwa أولاً.',
         ),
         actions: [
           TextButton(

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/features/invoice_ops/data/invoice_op_repository.dart';
-import 'package:inventory_app/features/invoice_ops/domain/invoice_op_models.dart';
+import 'package:safwa/features/invoice_ops/data/invoice_op_repository.dart';
+import 'package:safwa/features/invoice_ops/domain/invoice_op_models.dart';
 
 void main() {
   test('duplicate invoice rows are combined before stock validation', () {

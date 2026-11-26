@@ -326,6 +326,8 @@ class SqliteDatabase {
         invoice_number TEXT NOT NULL,
         customer_id INTEGER REFERENCES customers(id),
         account_id INTEGER REFERENCES accounts(id),
+        sales_rep_account_id INTEGER REFERENCES accounts(id),
+        warehouse_id INTEGER REFERENCES warehouses(id),
         invoice_date TEXT NOT NULL,
         subtotal INTEGER NOT NULL,
         discount INTEGER DEFAULT 0,
@@ -365,6 +367,16 @@ class SqliteDatabase {
       db.execute(
         'ALTER TABLE sales_invoices ADD COLUMN '
         'account_id INTEGER REFERENCES accounts(id)',
+      );
+    }
+    if (!salesInvoiceColumnNames.contains('warehouse_id')) {
+      db.execute(
+        'ALTER TABLE sales_invoices ADD COLUMN warehouse_id INTEGER REFERENCES warehouses(id)',
+      );
+    }
+    if (!salesInvoiceColumnNames.contains('sales_rep_account_id')) {
+      db.execute(
+        'ALTER TABLE sales_invoices ADD COLUMN sales_rep_account_id INTEGER REFERENCES accounts(id)',
       );
     }
 
@@ -780,6 +792,53 @@ class SqliteDatabase {
       )
     ''');
     db.execute('''
+      CREATE TABLE IF NOT EXISTS program_roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        description TEXT NOT NULL DEFAULT '',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT
+      )
+    ''');
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS program_role_permissions (
+        role_id INTEGER NOT NULL REFERENCES program_roles(id) ON DELETE CASCADE,
+        permission_code TEXT NOT NULL,
+        PRIMARY KEY(role_id, permission_code)
+      )
+    ''');
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS program_user_roles (
+        user_id INTEGER NOT NULL REFERENCES program_users(id) ON DELETE CASCADE,
+        role_id INTEGER NOT NULL REFERENCES program_roles(id) ON DELETE CASCADE,
+        PRIMARY KEY(user_id, role_id)
+      )
+    ''');
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS program_login_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER REFERENCES program_users(id) ON DELETE SET NULL,
+        username TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        event_time TEXT NOT NULL
+      )
+    ''');
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS program_user_preferences (
+        user_id INTEGER NOT NULL REFERENCES program_users(id) ON DELETE CASCADE,
+        preference_key TEXT NOT NULL,
+        preference_value TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY(user_id, preference_key)
+      )
+    ''');
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_program_login_history_user_time '
+      'ON program_login_history(user_id,event_time DESC)',
+    );
+    _seedDefaultProgramRoles(db);
+    db.execute('''
       CREATE TABLE IF NOT EXISTS entity_custom_values (
         scope TEXT NOT NULL,
         entity_id INTEGER NOT NULL,
@@ -1154,6 +1213,68 @@ class SqliteDatabase {
       'CREATE INDEX IF NOT EXISTS idx_products_barcode '
       'ON products(barcode)',
     );
+  }
+
+  void _seedDefaultProgramRoles(Database db) {
+    if ((db.select('SELECT COUNT(*) AS count FROM program_roles').first['count']
+                as num?)
+            ?.toInt() !=
+        0) {
+      return;
+    }
+    const templates = <(String, String, List<String>)>[
+      (
+        'مبيعات',
+        'مستخدم فواتير البيع والعملاء.',
+        [
+          'products',
+          'accounts',
+          'sales',
+          'sales_return',
+          'quotation',
+          'invoices',
+        ],
+      ),
+      (
+        'مشتريات',
+        'مستخدم فواتير الشراء والموردين.',
+        ['products', 'accounts', 'purchases', 'purchase_return', 'invoices'],
+      ),
+      (
+        'أمين مخزن',
+        'إدارة الأصناف والجرد والتسويات والتحويلات.',
+        ['products', 'warehouse', 'stocktaking', 'adjustment', 'transfer'],
+      ),
+      (
+        'محاسب',
+        'مستخدم الحسابات والخزينة والتقارير المالية.',
+        [
+          'accounts',
+          'receipts',
+          'payments',
+          'treasury',
+          'reports',
+          'daily_movement',
+          'statements',
+          'checks',
+        ],
+      ),
+    ];
+    final now = DateTime.now().toIso8601String();
+    var order = 0;
+    for (final template in templates) {
+      db.execute(
+        'INSERT INTO program_roles(name,description,sort_order,created_at) VALUES(?,?,?,?)',
+        [template.$1, template.$2, order++, now],
+      );
+      final roleId = db.lastInsertRowId;
+      for (final code in template.$3) {
+        db.execute(
+          'INSERT INTO program_role_permissions(role_id,permission_code) VALUES(?,?)',
+          [roleId, code],
+        );
+      }
+    }
   }
 
   /// Execute a query and return rows as List of Maps.

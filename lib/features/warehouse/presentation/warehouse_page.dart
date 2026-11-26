@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_app/app/theme/app_theme.dart';
+import 'package:safwa/app/theme/app_theme.dart';
 
 class WarehousePage extends StatelessWidget {
   const WarehousePage({super.key});

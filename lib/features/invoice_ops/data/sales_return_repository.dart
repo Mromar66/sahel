@@ -1,7 +1,7 @@
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/invoice_ops/data/invoice_op_repository.dart';
-import 'package:inventory_app/features/invoice_ops/domain/invoice_op_models.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/invoice_ops/data/invoice_op_repository.dart';
+import 'package:safwa/features/invoice_ops/domain/invoice_op_models.dart';
 
 /// مرتجع بيع — builds a return document from a saved sales invoice, puts the
 /// returned quantities back into stock and records any refund to the customer.
@@ -135,6 +135,9 @@ class SalesReturnRepository extends InvoiceRepositoryBase {
     required String notes,
     required String paymentMethod,
     InvoicePaymentInput? payment,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     int? quotationId,
     Map<int, String> customFields = const {},
@@ -285,6 +288,7 @@ class SalesReturnRepository extends InvoiceRepositoryBase {
           moneyIn: false,
           numberPrefix: 'REF',
           now: now,
+          treasuryId: payment?.treasuryId,
         );
       }
 
@@ -314,6 +318,9 @@ class SalesReturnRepository extends InvoiceRepositoryBase {
     required int addition,
     required String notes,
     required String paymentMethod,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     Map<int, String> customFields = const {},
   }) async {
@@ -530,6 +537,7 @@ class SalesReturnRepository extends InvoiceRepositoryBase {
     required int accountId,
     required int amount,
     required String method,
+    int? treasuryId,
   }) async {
     if (amount <= 0) {
       throw InvoiceValidationException('أدخل مبلغ استرداد أكبر من صفر.');
@@ -571,6 +579,7 @@ class SalesReturnRepository extends InvoiceRepositoryBase {
         moneyIn: false,
         numberPrefix: 'REF',
         now: now,
+        treasuryId: treasuryId,
       );
       final newPaid = alreadyPaid + amount;
       final newRemaining = total - newPaid;

@@ -8,7 +8,7 @@
 /// posting rules.
 library;
 
-import 'package:inventory_app/features/stocktaking/domain/stocktaking_models.dart';
+import 'package:safwa/features/stocktaking/domain/stocktaking_models.dart';
 
 /// The product row shown by the lookup dialogs is exactly the same read-only
 /// catalogue record used by جرد مخزن, so it is reused instead of duplicated.

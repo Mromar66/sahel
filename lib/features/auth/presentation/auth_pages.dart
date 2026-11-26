@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory_app/core/services/auth_session.dart';
+import 'package:safwa/core/services/auth_session.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) => _AuthScaffold(
     title: 'تسجيل الدخول',
-    subtitle: 'أدخل بيانات المستخدم للمتابعة إلى برنامج صفو',
+    subtitle: 'أدخل بيانات المستخدم للمتابعة إلى برنامج Safwa',
     children: [
       _AuthField(
         controller: _username,
@@ -220,7 +220,7 @@ class _AuthScaffold extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      'assets/icons/logo.png',
+                      'assets/icons/safwa_logo.png',
                       width: 74,
                       height: 74,
                       errorBuilder: (_, _, _) => const Icon(

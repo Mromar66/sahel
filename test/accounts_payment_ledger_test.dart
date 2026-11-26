@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/features/accounts/data/accounts_repo.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/features/accounts/data/accounts_repo.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 void main() {

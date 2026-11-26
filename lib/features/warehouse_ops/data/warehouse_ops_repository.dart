@@ -1,9 +1,9 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/core/utils/constants.dart';
-import 'package:inventory_app/features/stocktaking/data/stocktaking_repository.dart';
-import 'package:inventory_app/features/warehouse_ops/domain/warehouse_op_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/core/utils/constants.dart';
+import 'package:safwa/features/stocktaking/data/stocktaking_repository.dart';
+import 'package:safwa/features/warehouse_ops/domain/warehouse_op_models.dart';
 
 /// Data access for تسوية مخزن and تحويل لمخزن.
 ///

@@ -205,14 +205,14 @@ extension _SalesAnalysisLayout on _SalesAnalysisPageState {
               color: active
                   ? _kGreen
                   : hovered
-                  ? const Color(0xFFE6F6EC)
+                  ? const Color(0xFFF7F9FA)
                   : _kTabRest,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(8),
               ),
               border: Border(
                 top: BorderSide(
-                  color: active ? const Color(0xFF23A846) : _kTabEdge,
+                  color: active ? const Color(0xFF43B5DB) : _kTabEdge,
                   width: 2,
                 ),
               ),

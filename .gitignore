@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/build_safwa/
 /coverage/
 
 # Local business data and generated exports must never be staged with source.
@@ -38,6 +39,7 @@ migrate_working_dir/
 /database/*.sqlite-*
 /database/*.db
 /database/*.db-*
+/database/product_images/
 /invoices/*.csv
 /invoices/*.xlsx
 /invoices/*.pdf

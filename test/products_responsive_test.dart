@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/features/products/presentation/products_list_page.dart';
+import 'package:go_router/go_router.dart';
+import 'package:safwa/features/products/presentation/products_list_page.dart';
 
 void main() {
   testWidgets('products page fits a 1024x704 desktop viewport', (tester) async {
@@ -9,7 +10,18 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MaterialApp(home: ProductsListPage()));
+    final router = GoRouter(
+      initialLocation: '/products',
+      routes: [
+        GoRoute(
+          path: '/products',
+          builder: (context, state) => const ProductsListPage(),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
 
     expect(find.byType(ProductsListPage), findsOneWidget);

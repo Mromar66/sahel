@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/barcode_glyph.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/barcode_glyph.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 /// Callbacks for every button of the document footer bar. Both شراء and
 /// جرد مخزن pass their own handlers; the visuals stay identical.
@@ -94,7 +94,7 @@ class ShopFooterBar extends StatelessWidget {
                 child: Container(
                   width: 16,
                   height: 16,
-                  color: const Color(0xFF087425),
+                  color: const Color(0xFF248EB2),
                   alignment: Alignment.center,
                   child: const Text(
                     'x',

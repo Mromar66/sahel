@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/features/products/presentation/export_dialog.dart';
-import 'package:inventory_app/features/reports/data/purchase_analysis_repository.dart';
-import 'package:inventory_app/features/reports/domain/purchase_analysis_models.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/features/products/presentation/export_dialog.dart';
+import 'package:safwa/features/reports/data/purchase_analysis_repository.dart';
+import 'package:safwa/features/reports/domain/purchase_analysis_models.dart';
 
 part 'purchase_analysis_layout.dart';
 
@@ -60,7 +60,7 @@ String _errorText(Object error) => error is PurchaseAnalysisException
     ? error.message
     : 'تعذر تنفيذ العملية: $error';
 
-/// تقرير تحليل المشتريات — the Sahl purchase analysis screen, backed by the
+/// تقرير تحليل المشتريات — the Safwa purchase analysis screen, backed by the
 /// real purchase invoices, purchase returns, accounts, products and categories.
 class PurchaseAnalysisPage extends StatefulWidget {
   const PurchaseAnalysisPage({super.key});
@@ -138,7 +138,14 @@ class _PurchaseAnalysisPageState extends State<PurchaseAnalysisPage> {
 
   void _rebuild(VoidCallback fn) => setState(fn);
 
-  void _close() => context.go('/');
+  void _close() {
+    removeCurrentAppTab(context);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
 
   void _refreshFilterLists() {
     try {

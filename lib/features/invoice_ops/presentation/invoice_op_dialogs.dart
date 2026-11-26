@@ -152,7 +152,8 @@ class _InvoicePaymentDialog extends StatefulWidget {
     required this.remaining,
     required this.accountName,
     required this.initialMethod,
-    required this.treasury,
+    required this.treasuries,
+    required this.selectedTreasuryId,
     required this.title,
     required this.amountLabel,
     required this.confirmLabel,
@@ -163,7 +164,8 @@ class _InvoicePaymentDialog extends StatefulWidget {
   final int remaining;
   final String accountName;
   final String initialMethod;
-  final String treasury;
+  final List<InvoiceTreasury> treasuries;
+  final int? selectedTreasuryId;
   final String title;
   final String amountLabel;
   final String confirmLabel;
@@ -178,6 +180,9 @@ class _InvoicePaymentDialogState extends State<_InvoicePaymentDialog> {
   );
   late String _method = widget.initialMethod;
   late final List<Map<String, Object?>> _methods;
+  late int? _treasuryId =
+      widget.selectedTreasuryId ??
+      (widget.treasuries.isEmpty ? null : widget.treasuries.first.id);
 
   @override
   void initState() {
@@ -215,6 +220,7 @@ class _InvoicePaymentDialogState extends State<_InvoicePaymentDialog> {
         accountId: widget.accountId,
         amount: value,
         method: _method,
+        treasuryId: _treasuryId,
       ),
     );
   }
@@ -301,9 +307,39 @@ class _InvoicePaymentDialogState extends State<_InvoicePaymentDialog> {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            'الخزينة: ${widget.treasury}',
-            style: const TextStyle(fontSize: 11.5, color: Color(0xFF666666)),
+          Text('الخزينة', style: const TextStyle(fontSize: 12, color: _kInk)),
+          const SizedBox(height: 5),
+          Container(
+            height: 28,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFB8B8B8)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: widget.treasuries.any((item) => item.id == _treasuryId)
+                    ? _treasuryId
+                    : null,
+                hint: const Text('اختار الخزينة'),
+                isExpanded: true,
+                isDense: true,
+                dropdownColor: Colors.white,
+                style: const TextStyle(fontSize: 12.5, color: _kInk),
+                items: widget.treasuries
+                    .map(
+                      (item) => DropdownMenuItem<int>(
+                        value: item.id,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(item.name),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _treasuryId = value),
+              ),
+            ),
           ),
         ],
       ),
@@ -312,28 +348,35 @@ class _InvoicePaymentDialogState extends State<_InvoicePaymentDialog> {
 
   Widget _summaryBox(String label, String value) {
     return Container(
-      height: 46,
+      height: 28,
       decoration: BoxDecoration(
         color: const Color(0xFFF4F4F4),
         border: Border.all(color: const Color(0xFFDDDDDD)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Row(
+        textDirection: TextDirection.rtl,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10.5, color: Color(0xFF666666)),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10.5, color: Color(0xFF666666)),
+            ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: _kInk,
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: _kInk,
+              ),
             ),
           ),
         ],

@@ -3,16 +3,20 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/core/security/password_hasher.dart';
-import 'package:inventory_app/core/services/auth_session.dart';
-import 'package:inventory_app/core/utils/currency_utils.dart';
-import 'package:inventory_app/features/home/presentation/home_page.dart';
-import 'package:inventory_app/features/settings/data/settings_repository.dart';
-import 'package:inventory_app/features/settings/presentation/settings_dialogs.dart';
+import 'package:safwa/app/shell/app_window_tabs.dart';
+import 'package:safwa/app/theme/app_theme.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/core/security/password_hasher.dart';
+import 'package:safwa/core/security/permission_catalog.dart';
+import 'package:safwa/core/services/auth_session.dart';
+import 'package:safwa/core/utils/constants.dart';
+import 'package:safwa/core/utils/currency_utils.dart';
+import 'package:safwa/features/home/presentation/home_page.dart';
+import 'package:safwa/features/settings/data/settings_repository.dart';
+import 'package:safwa/features/settings/presentation/settings_dialogs.dart';
 
 const _settingsBlue = Color(0xFF005EF4);
-const _settingsGreen = Color(0xFF30C859);
+const _settingsGreen = Color(0xFF43B5DB);
 const _settingsGray = Color(0xFFE8E8E8);
 const _settingsInk = Color(0xFF171717);
 
@@ -26,8 +30,67 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _unlocked = false;
+  int? _activeSettingsTab;
+  String? _activeSettingsTitle;
 
   void _close() => context.go('/');
+
+  void _openCategory(_SettingsCategory category) {
+    if (category.tab != null) {
+      setState(() {
+        _activeSettingsTab = category.tab;
+        _activeSettingsTitle = category.label;
+      });
+      return;
+    }
+    if (category.route != null) {
+      if (category.routeNote != null) {
+        showDialog<void>(
+          context: context,
+          builder: (dialogContext) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: AlertDialog(
+              title: Text(category.label),
+              content: Text(category.routeNote!),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('رجوع'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    openAppWindowTab(context, category.route!);
+                  },
+                  child: const Text('فتح مركز التقارير'),
+                ),
+              ],
+            ),
+          ),
+        );
+        return;
+      }
+      openAppWindowTab(context, category.route!);
+      return;
+    }
+    if (category.displaySettings) {
+      _showDisplaySettings();
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(category.label),
+        content: Text(category.unavailableMessage ?? 'القسم غير متاح حالياً.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +134,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       width: width,
                       height: height,
                       child: _unlocked
-                          ? _SettingsWindow(onClose: _close)
+                          ? _activeSettingsTab == null
+                                ? _SettingsCategoryWindow(
+                                    onClose: _close,
+                                    onSelect: _openCategory,
+                                  )
+                                : _SettingsWindow(
+                                    initialTab: _activeSettingsTab!,
+                                    title: _activeSettingsTitle ?? 'الخصائص',
+                                    onClose: _close,
+                                    onBack: () => setState(() {
+                                      _activeSettingsTab = null;
+                                      _activeSettingsTitle = null;
+                                    }),
+                                  )
                           : _SettingsPasswordWindow(
                               width: width,
                               onClose: _close,
@@ -88,6 +164,240 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+
+  void _showDisplaySettings() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('طريقة العرض'),
+          content: ValueListenableBuilder<ThemeMode>(
+            valueListenable: AppThemeController.mode,
+            builder: (context, mode, _) => SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('استخدام الواجهة الفاتحة'),
+              subtitle: Text(
+                mode == ThemeMode.light
+                    ? 'الوضع الفاتح شغال'
+                    : 'الوضع الداكن شغال',
+              ),
+              value: mode == ThemeMode.light,
+              onChanged: (_) => AppThemeController.toggle(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsCategory {
+  const _SettingsCategory({
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.tab,
+    this.route,
+    this.routeNote,
+    this.displaySettings = false,
+    this.unavailableMessage,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final int? tab;
+  final String? route;
+  final String? routeNote;
+  final bool displaySettings;
+  final String? unavailableMessage;
+}
+
+const _settingsCategories = <_SettingsCategory>[
+  _SettingsCategory(
+    label: 'إعدادات النظام',
+    icon: Icons.settings,
+    color: Color(0xFF9BCBF1),
+    tab: 0,
+  ),
+  _SettingsCategory(
+    label: 'الفواتير',
+    icon: Icons.description,
+    color: Color(0xFFB982D9),
+    tab: 2,
+  ),
+  _SettingsCategory(
+    label: 'المخازن',
+    icon: Icons.inventory_2,
+    color: Color(0xFF74B9E7),
+    tab: 0,
+  ),
+  _SettingsCategory(
+    label: 'العملاء والموردين',
+    icon: Icons.people_alt,
+    color: Color(0xFF8B1E96),
+    route: AppRoutes.accounts,
+  ),
+  _SettingsCategory(
+    label: 'الضرائب',
+    icon: Icons.account_balance_wallet,
+    color: Color(0xFF9D1D2C),
+    tab: 2,
+  ),
+  _SettingsCategory(
+    label: 'صلاحيات المستخدمين',
+    icon: Icons.person,
+    color: Color(0xFF7DA6E5),
+    tab: 0,
+  ),
+  _SettingsCategory(
+    label: 'الأجهزة والطابعات',
+    icon: Icons.devices,
+    color: Color(0xFF1F4F8E),
+    tab: 4,
+  ),
+  _SettingsCategory(
+    label: 'طريقة العرض',
+    icon: Icons.format_list_bulleted,
+    color: Color(0xFFE28A6D),
+    displaySettings: true,
+  ),
+  _SettingsCategory(
+    label: 'شريط الأخبار',
+    icon: Icons.rss_feed,
+    color: Color(0xFF7185C5),
+    unavailableMessage: 'إعداد شريط الأخبار مش موجود في صفو حالياً.',
+  ),
+  _SettingsCategory(
+    label: 'الحقول الإضافية',
+    icon: Icons.grid_view_rounded,
+    color: Color(0xFF9A7A98),
+    tab: 1,
+  ),
+  _SettingsCategory(
+    label: 'الدورة المستندية',
+    icon: Icons.autorenew,
+    color: Color(0xFF80B7E8),
+    unavailableMessage: 'إعداد مراحل الدورة المستندية مش موجود في صفو حالياً.',
+  ),
+  _SettingsCategory(
+    label: 'الإضافات',
+    icon: Icons.extension,
+    color: Color(0xFF9A993E),
+    unavailableMessage: 'إدارة إضافات خارجية مش موجودة في صفو حالياً.',
+  ),
+  _SettingsCategory(
+    label: 'تصميم التقارير',
+    icon: Icons.design_services,
+    color: Color(0xFF334B9B),
+    route: AppRoutes.reports,
+    routeNote: 'صفو فيه مركز تقارير حالياً، لكن مصمم نماذج التقارير زي دكسف لسه مش متنفذ.',
+  ),
+];
+
+class _SettingsCategoryWindow extends StatelessWidget {
+  const _SettingsCategoryWindow({
+    required this.onClose,
+    required this.onSelect,
+  });
+
+  final VoidCallback onClose;
+  final ValueChanged<_SettingsCategory> onSelect;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: const Color(0xFFB7B7B7)),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x55000000),
+          blurRadius: 18,
+          offset: Offset(0, 7),
+        ),
+      ],
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: Column(
+      children: [
+        _SettingsTitleBar(onClose: onClose, title: 'الخصائص'),
+        Expanded(
+          child: Center(
+            child: SizedBox(
+              width: 820,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  mainAxisExtent: 142,
+                ),
+                itemCount: _settingsCategories.length,
+                itemBuilder: (context, index) {
+                  final category = _settingsCategories[index];
+                  return _SettingsCategoryTile(
+                    category: category,
+                    onTap: () => onSelect(category),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _SettingsCategoryTile extends StatefulWidget {
+  const _SettingsCategoryTile({required this.category, required this.onTap});
+
+  final _SettingsCategory category;
+  final VoidCallback onTap;
+
+  @override
+  State<_SettingsCategoryTile> createState() => _SettingsCategoryTileState();
+}
+
+class _SettingsCategoryTileState extends State<_SettingsCategoryTile> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+    cursor: SystemMouseCursors.click,
+    onEnter: (_) => setState(() => _hovered = true),
+    onExit: (_) => setState(() => _hovered = false),
+    child: InkWell(
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        margin: const EdgeInsets.all(5),
+        color: _hovered ? const Color(0xFFEAF4FC) : Colors.white,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(widget.category.icon, size: 52, color: widget.category.color),
+            const SizedBox(height: 10),
+            Text(
+              widget.category.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _SettingsPasswordWindow extends StatefulWidget {
@@ -272,8 +582,17 @@ class _SettingsPasswordWindowState extends State<_SettingsPasswordWindow> {
 }
 
 class _SettingsWindow extends StatefulWidget {
-  const _SettingsWindow({required this.onClose});
+  const _SettingsWindow({
+    required this.initialTab,
+    required this.title,
+    required this.onClose,
+    required this.onBack,
+  });
+
+  final int initialTab;
+  final String title;
   final VoidCallback onClose;
+  final VoidCallback onBack;
 
   @override
   State<_SettingsWindow> createState() => _SettingsWindowState();
@@ -290,7 +609,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
     'إعداد المطعم',
   ];
   late final Map<String, TextEditingController> _fields;
-  int _tab = 0;
+  late int _tab;
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -306,6 +625,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
   @override
   void initState() {
     super.initState();
+    _tab = widget.initialTab;
     _fields = {
       'project_name': TextEditingController(
         text: _repo.read('settings.project_name', 'معرضنا'),
@@ -453,7 +773,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
       textDirection: TextDirection.rtl,
       child: Column(
         children: [
-          _SettingsTitleBar(onClose: widget.onClose),
+          _SettingsTitleBar(onClose: widget.onClose, title: widget.title),
           _buildHeader(),
           _buildTabs(),
           if (_error != null)
@@ -501,11 +821,24 @@ class _SettingsWindowState extends State<_SettingsWindow> {
               fixedSize: const Size(126, 31),
             ),
           ),
+          const SizedBox(width: 6),
+          TextButton.icon(
+            onPressed: widget.onBack,
+            icon: const Icon(
+              Icons.arrow_forward,
+              size: 16,
+              color: Colors.black,
+            ),
+            label: const Text(
+              'كل الخصائص',
+              style: TextStyle(fontSize: 11, color: Colors.black),
+            ),
+          ),
           const Spacer(),
-          const Text(
-            'إعداد صفو',
+          Text(
+            widget.title,
             style: TextStyle(
-              color: Color(0xFF13B83F),
+              color: Color(0xFF43B5DB),
               fontSize: 24,
               fontWeight: FontWeight.w400,
             ),
@@ -587,7 +920,28 @@ class _SettingsWindowState extends State<_SettingsWindow> {
             const SizedBox(height: 7),
             Expanded(child: _otherListsPanel()),
             const SizedBox(height: 7),
-            Expanded(child: _usersPanel()),
+            Expanded(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 33,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: _manageRoles,
+                        icon: const Icon(Icons.admin_panel_settings, size: 16),
+                        label: const Text('مجموعات الصلاحيات'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          textStyle: const TextStyle(fontSize: 10.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(child: _usersPanel()),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -785,6 +1139,242 @@ class _SettingsWindowState extends State<_SettingsWindow> {
     moveDown: () => _moveUser(1),
   );
 
+  Future<void> _manageRoles() async {
+    var roles = _repo.roles();
+    int? selectedId;
+    String? error;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: StatefulBuilder(
+          builder: (context, setDialogState) {
+            final selected = roles
+                .where((role) => role.id == selectedId)
+                .firstOrNull;
+            return AlertDialog(
+              title: const Text('مجموعات الصلاحيات'),
+              content: SizedBox(
+                width: 690,
+                height: 470,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 250,
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _grayButton(
+                                        'مجموعة جديدة',
+                                        Icons.add,
+                                        () async {
+                                          final draft =
+                                              await showSettingsRoleDialog(
+                                                dialogContext,
+                                              );
+                                          if (draft == null) return;
+                                          try {
+                                            await _repo.saveRole(
+                                              name: draft.name,
+                                              description: draft.description,
+                                              permissions: draft.permissions,
+                                            );
+                                            if (!dialogContext.mounted) return;
+                                            setDialogState(() {
+                                              roles = _repo.roles();
+                                              selectedId = roles.lastOrNull?.id;
+                                              error = null;
+                                            });
+                                            _reloadLists();
+                                          } catch (exception) {
+                                            if (dialogContext.mounted) {
+                                              setDialogState(
+                                                () => error = exception
+                                                    .toString(),
+                                              );
+                                            }
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 7),
+                                Expanded(
+                                  child: ListView.builder(
+                                    itemCount: roles.length,
+                                    itemBuilder: (context, index) {
+                                      final role = roles[index];
+                                      final selected = role.id == selectedId;
+                                      return ListTile(
+                                        dense: true,
+                                        selected: selected,
+                                        selectedTileColor: const Color(
+                                          0xFFE5F2FF,
+                                        ),
+                                        title: Text(role.name),
+                                        subtitle: Text(
+                                          '${role.userCount} مستخدم · ${role.permissions.length} شاشة',
+                                          style: const TextStyle(fontSize: 10),
+                                        ),
+                                        onTap: () => setDialogState(
+                                          () => selectedId = role.id,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const VerticalDivider(width: 22),
+                          Expanded(
+                            child: selected == null
+                                ? const Center(
+                                    child: Text(
+                                      'اختار مجموعة أو اعمل مجموعة جديدة.',
+                                    ),
+                                  )
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Text(
+                                        selected.name,
+                                        style: const TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (selected.description.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 4,
+                                          ),
+                                          child: Text(selected.description),
+                                        ),
+                                      const SizedBox(height: 12),
+                                      const Text('الشاشات المسموح بها:'),
+                                      const SizedBox(height: 5),
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          child: Wrap(
+                                            spacing: 5,
+                                            runSpacing: 5,
+                                            children: [
+                                              for (final group
+                                                  in appPermissionGroups)
+                                                for (final permission
+                                                    in group.permissions)
+                                                  if (selected.permissions
+                                                      .contains(
+                                                        permission.code,
+                                                      ))
+                                                    Chip(
+                                                      label: Text(
+                                                        permission.label,
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                      visualDensity:
+                                                          VisualDensity.compact,
+                                                    ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (error != null) ...[
+                      const SizedBox(height: 5),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          error!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                if (selected != null)
+                  TextButton.icon(
+                    onPressed: () async {
+                      final draft = await showSettingsRoleDialog(
+                        dialogContext,
+                        role: selected,
+                      );
+                      if (draft == null) return;
+                      try {
+                        await _repo.saveRole(
+                          id: selected.id,
+                          name: draft.name,
+                          description: draft.description,
+                          permissions: draft.permissions,
+                        );
+                        if (!dialogContext.mounted) return;
+                        setDialogState(() {
+                          roles = _repo.roles();
+                          error = null;
+                        });
+                        _reloadLists();
+                      } catch (exception) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => error = exception.toString());
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    label: const Text('تعديل'),
+                  ),
+                if (selected != null)
+                  TextButton.icon(
+                    onPressed: () async {
+                      final ok = await showSettingsConfirmDialog(
+                        dialogContext,
+                        title: 'حذف مجموعة الصلاحيات',
+                        message: 'المستخدمين اللي عليهم المجموعة هيفقدوا صلاحياتها. تقدر تعيّنهم لمجموعة تانية بعد الحذف.',
+                      );
+                      if (ok != true) return;
+                      await _repo.deleteRole(selected.id);
+                      if (!dialogContext.mounted) return;
+                      setDialogState(() {
+                        roles = _repo.roles();
+                        selectedId = null;
+                        error = null;
+                      });
+                      _reloadLists();
+                    },
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    label: const Text('حذف'),
+                  ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('إغلاق'),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _managePanel({
     required String title,
     required List<Map<String, dynamic>> rows,
@@ -877,15 +1467,28 @@ class _SettingsWindowState extends State<_SettingsWindow> {
               width: 74,
               child: Column(
                 children: [
-                  _listAction('جديد', Icons.add, add, color: _settingsBlue),
-                  _listAction('تعديل', Icons.edit_outlined, edit),
-                  _listAction(
-                    'حذف',
-                    Icons.remove,
-                    delete,
-                    color: const Color(0xFFFF614F),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _listAction(
+                            'جديد',
+                            Icons.add,
+                            add,
+                            color: _settingsBlue,
+                          ),
+                          _listAction('تعديل', Icons.edit_outlined, edit),
+                          _listAction(
+                            'حذف',
+                            Icons.remove,
+                            delete,
+                            color: const Color(0xFFFF614F),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  const Spacer(),
                   Row(
                     children: [
                       Expanded(
@@ -924,12 +1527,20 @@ class _SettingsWindowState extends State<_SettingsWindow> {
         color: _settingsGray,
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (label.isNotEmpty)
-              Text(
-                label,
-                style: const TextStyle(color: _settingsInk, fontSize: 11),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 2),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _settingsInk, fontSize: 10),
+                  ),
+                ),
               ),
             Icon(
               icon,
@@ -1320,6 +1931,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
         isAdmin: draft.isAdmin,
         isActive: draft.isActive,
         permissions: draft.permissions,
+        roleIds: draft.roleIds,
       );
     }, message: 'تم إنشاء المستخدم وصلاحياته.');
   }
@@ -1338,6 +1950,7 @@ class _SettingsWindowState extends State<_SettingsWindow> {
         isAdmin: draft.isAdmin,
         isActive: draft.isActive,
         permissions: draft.permissions,
+        roleIds: draft.roleIds,
       );
       await AuthSession.instance.refreshCurrentUser();
     }, message: 'تم تحديث بيانات المستخدم وصلاحياته.');
@@ -1536,16 +2149,19 @@ class _SettingsWindowState extends State<_SettingsWindow> {
           const SizedBox(height: 8),
         ],
         const SizedBox(height: 8),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-          value: _repo.read('settings.e_invoice_enabled', '0') == '1',
-          onChanged: (value) => _saveValues({
-            'settings.e_invoice_enabled': value == true ? '1' : '0',
-          }, message: 'تم حفظ حالة الفاتورة الإلكترونية.'),
-          title: const Text(
-            'تفعيل خصائص الفاتورة الإلكترونية',
-            style: TextStyle(fontSize: 12, color: Color(0xFFEA4335)),
+        Material(
+          color: Colors.white,
+          child: CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            value: _repo.read('settings.e_invoice_enabled', '0') == '1',
+            onChanged: (value) => _saveValues({
+              'settings.e_invoice_enabled': value == true ? '1' : '0',
+            }, message: 'تم حفظ حالة الفاتورة الإلكترونية.'),
+            title: const Text(
+              'تفعيل خصائص الفاتورة الإلكترونية',
+              style: TextStyle(fontSize: 12, color: Color(0xFFEA4335)),
+            ),
           ),
         ),
         Align(
@@ -1604,10 +2220,15 @@ class _SettingsWindowState extends State<_SettingsWindow> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _autoTaxCheck(
-                index,
-                'sale',
-                'أضف الضريبة تلقائياً لفاتورة البيع',
+              const SizedBox(
+                height: 27,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    'تُضاف يدويًا في فاتورة البيع',
+                    style: TextStyle(fontSize: 11.5, color: _settingsInk),
+                  ),
+                ),
               ),
               _autoTaxCheck(
                 index,
@@ -1747,16 +2368,19 @@ class _SettingsWindowState extends State<_SettingsWindow> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _sectionTitle('خيارات أخرى'),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-          value: _repo.read('settings.scale_barcode_enabled', '0') == '1',
-          onChanged: (value) => _saveValues({
-            'settings.scale_barcode_enabled': value == true ? '1' : '0',
-          }, message: 'تم حفظ إعداد الميزان.'),
-          title: const Text(
-            'تفعيل ميزان باركود',
-            style: TextStyle(fontSize: 11),
+        Material(
+          color: Colors.white,
+          child: CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            value: _repo.read('settings.scale_barcode_enabled', '0') == '1',
+            onChanged: (value) => _saveValues({
+              'settings.scale_barcode_enabled': value == true ? '1' : '0',
+            }, message: 'تم حفظ إعداد الميزان.'),
+            title: const Text(
+              'تفعيل ميزان باركود',
+              style: TextStyle(fontSize: 11),
+            ),
           ),
         ),
         Row(
@@ -1791,16 +2415,19 @@ class _SettingsWindowState extends State<_SettingsWindow> {
           ],
         ),
         const SizedBox(height: 12),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-          value: _repo.read('settings.auto_deliver_sales', '0') == '1',
-          onChanged: (value) => _saveValues({
-            'settings.auto_deliver_sales': value == true ? '1' : '0',
-          }, message: 'تم حفظ خيار تسليم الفواتير.'),
-          title: const Text(
-            'تسليم فواتير البيع تلقائياً',
-            style: TextStyle(fontSize: 11),
+        Material(
+          color: Colors.white,
+          child: CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            value: _repo.read('settings.auto_deliver_sales', '0') == '1',
+            onChanged: (value) => _saveValues({
+              'settings.auto_deliver_sales': value == true ? '1' : '0',
+            }, message: 'تم حفظ خيار تسليم الفواتير.'),
+            title: const Text(
+              'تسليم فواتير البيع تلقائياً',
+              style: TextStyle(fontSize: 11),
+            ),
           ),
         ),
         const SizedBox(height: 4),
@@ -1911,8 +2538,9 @@ class _SettingsWindowState extends State<_SettingsWindow> {
 }
 
 class _SettingsTitleBar extends StatelessWidget {
-  const _SettingsTitleBar({required this.onClose});
+  const _SettingsTitleBar({required this.onClose, this.title = 'إعداد Safwa'});
   final VoidCallback onClose;
+  final String title;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -1921,10 +2549,7 @@ class _SettingsTitleBar extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 5),
     child: Row(
       children: [
-        const Text(
-          'إعداد صفو',
-          style: TextStyle(color: Color(0xFF333333), fontSize: 10.5),
-        ),
+        Text(title, style: TextStyle(color: Color(0xFF333333), fontSize: 10.5)),
         const Spacer(),
         IconButton(
           onPressed: onClose,

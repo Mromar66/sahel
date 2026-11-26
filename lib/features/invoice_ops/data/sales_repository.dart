@@ -1,7 +1,7 @@
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/invoice_ops/data/invoice_op_repository.dart';
-import 'package:inventory_app/features/invoice_ops/domain/invoice_op_models.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/invoice_ops/data/invoice_op_repository.dart';
+import 'package:safwa/features/invoice_ops/domain/invoice_op_models.dart';
 
 /// بيع جديد — sales invoices, selling prices, stock out and customer receipts.
 class SalesRepository extends InvoiceRepositoryBase {
@@ -50,6 +50,9 @@ class SalesRepository extends InvoiceRepositoryBase {
     required String notes,
     required String paymentMethod,
     InvoicePaymentInput? payment,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     int? quotationId,
     Map<int, String> customFields = const {},
@@ -64,9 +67,13 @@ class SalesRepository extends InvoiceRepositoryBase {
       payment: payment,
       accountId: accountId,
     );
+    _requireSalesRepresentative(salesRepresentativeId);
+    final selectedWarehouseId =
+        warehouseId ?? WarehouseStock.defaultWarehouseId(db);
 
     return db.transaction<InvoiceSaveResult>(() async {
       final now = DateTime.now().toIso8601String();
+      final documentDate = (invoiceDate ?? DateTime.now()).toIso8601String();
 
       if (quotationId != null) {
         final quoteRows = db.query(
@@ -86,7 +93,13 @@ class SalesRepository extends InvoiceRepositoryBase {
       final requested = aggregateInvoiceQuantities(lines);
       for (final entry in requested.entries) {
         final line = lines.firstWhere((line) => line.productId == entry.key);
-        final stock = currentStockInDefaultWarehouse(entry.key);
+        final stock = selectedWarehouseId == null
+            ? currentStock(entry.key)
+            : WarehouseStock.quantityInWarehouse(
+                db,
+                entry.key,
+                selectedWarehouseId,
+              );
         if (stock < entry.value) {
           throw InvoiceValidationException(
             'الكمية غير متاحة للصنف «${line.name}» — المتاح $stock فقط.',
@@ -100,13 +113,13 @@ class SalesRepository extends InvoiceRepositoryBase {
           (invoice_number, customer_id, account_id, invoice_date, subtotal,
            discount, tax, total, paid_amount, remaining_amount,
            payment_status, notes, is_return, original_invoice_id,
-           created_at, updated_at)
-        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?)
+           created_at, updated_at, warehouse_id, sales_rep_account_id)
+        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?, ?, ?)
         ''',
         [
           invoiceNumber,
           accountId,
-          now,
+          documentDate,
           totals.subtotal,
           totals.discount,
           totals.addition,
@@ -117,6 +130,8 @@ class SalesRepository extends InvoiceRepositoryBase {
           notes.isEmpty ? null : notes,
           now,
           now,
+          selectedWarehouseId,
+          salesRepresentativeId,
         ],
       );
 
@@ -163,8 +178,8 @@ class SalesRepository extends InvoiceRepositoryBase {
             productId,
             -line.qty,
             invoiceId,
-            WarehouseStock.defaultWarehouseId(db),
-            now,
+            selectedWarehouseId,
+            documentDate,
             'بيع - فاتورة $invoiceNumber',
           ],
         );
@@ -189,6 +204,7 @@ class SalesRepository extends InvoiceRepositoryBase {
           moneyIn: true,
           numberPrefix: 'RCV',
           now: now,
+          treasuryId: payment?.treasuryId,
         );
       }
 
@@ -218,6 +234,9 @@ class SalesRepository extends InvoiceRepositoryBase {
     required int addition,
     required String notes,
     required String paymentMethod,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     Map<int, String> customFields = const {},
   }) async {
@@ -226,17 +245,18 @@ class SalesRepository extends InvoiceRepositoryBase {
       discount: discount,
       addition: addition,
     );
+    _requireSalesRepresentative(salesRepresentativeId);
     return db.transaction<InvoiceSaveResult>(() async {
       final rows = db.query(
-        'SELECT account_id, paid_amount, invoice_date, created_at '
+        'SELECT account_id, paid_amount, warehouse_id '
         'FROM sales_invoices WHERE id = ? AND is_return = 0',
         [invoiceId],
       );
       if (rows.isEmpty) {
         throw InvoiceValidationException('فاتورة البيع غير موجودة.');
       }
-      final oldPaid = (rows.first['paid_amount'] as int?) ?? 0;
-      final oldAccount = rows.first['account_id'] as int?;
+      final oldPaid = (rows.first['paid_amount'] as num?)?.toInt() ?? 0;
+      final oldAccount = (rows.first['account_id'] as num?)?.toInt();
       if (oldPaid > 0 && accountId != oldAccount) {
         throw InvoiceValidationException(
           'لا يمكن تغيير الحساب بعد تسجيل مدفوعات على الفاتورة.',
@@ -248,8 +268,7 @@ class SalesRepository extends InvoiceRepositoryBase {
         );
       }
       final returns = db.query(
-        'SELECT COUNT(*) AS c FROM sales_invoices '
-        'WHERE is_return = 1 AND original_invoice_id = ?',
+        'SELECT COUNT(*) AS c FROM sales_invoices WHERE is_return=1 AND original_invoice_id=?',
         [invoiceId],
       );
       if (((returns.first['c'] as num?)?.toInt() ?? 0) > 0) {
@@ -257,8 +276,24 @@ class SalesRepository extends InvoiceRepositoryBase {
           'لا يمكن تعديل الفاتورة لأن عليها مرتجع بيع مسجل.',
         );
       }
+      var oldWarehouseId = (rows.first['warehouse_id'] as num?)?.toInt();
+      if (oldWarehouseId == null) {
+        final movement = db.query(
+          "SELECT from_warehouse_id FROM stock_movements WHERE reference_type='sales_invoice' "
+          'AND reference_id=? AND from_warehouse_id IS NOT NULL LIMIT 1',
+          [invoiceId],
+        );
+        if (movement.isNotEmpty) {
+          oldWarehouseId = (movement.first['from_warehouse_id'] as num?)
+              ?.toInt();
+        }
+      }
+      final selectedWarehouseId =
+          warehouseId ??
+          oldWarehouseId ??
+          WarehouseStock.defaultWarehouseId(db);
       final oldItems = db.query(
-        'SELECT product_id, quantity FROM sales_items WHERE invoice_id = ?',
+        'SELECT product_id, quantity FROM sales_items WHERE invoice_id=?',
         [invoiceId],
       );
       final restored = <int, int>{};
@@ -266,49 +301,51 @@ class SalesRepository extends InvoiceRepositoryBase {
         final productId = (item['product_id'] as num?)?.toInt();
         if (productId != null) {
           restored[productId] =
-              (restored[productId] ?? 0) + ((item['quantity'] as int?) ?? 0);
+              (restored[productId] ?? 0) +
+              ((item['quantity'] as num?)?.toInt() ?? 0);
         }
       }
-      final requested = <int, int>{};
-      for (final line in lines) {
-        final productId = line.productId;
-        if (productId == null) {
-          throw InvoiceValidationException(
-            'الصنف «${line.name}» غير مرتبط بمنتج مسجل.',
-          );
-        }
-        requested[productId] = (requested[productId] ?? 0) + line.qty;
-      }
+      final requested = aggregateInvoiceQuantities(lines);
       for (final entry in requested.entries) {
+        final stock = selectedWarehouseId == null
+            ? currentStock(entry.key)
+            : WarehouseStock.quantityInWarehouse(
+                db,
+                entry.key,
+                selectedWarehouseId,
+              );
         final available =
-            currentStockInDefaultWarehouse(entry.key) +
-            (restored[entry.key] ?? 0);
+            stock +
+            (selectedWarehouseId == oldWarehouseId
+                ? (restored[entry.key] ?? 0)
+                : 0);
         if (available < entry.value) {
+          final line = lines.firstWhere((line) => line.productId == entry.key);
           throw InvoiceValidationException(
-            'الكمية غير متاحة لأحد الأصناف — المتاح بعد التعديل $available فقط.',
+            'الكمية غير متاحة للصنف «${line.name}» — المتاح $available فقط.',
           );
         }
       }
       final now = DateTime.now().toIso8601String();
+      final documentDate = (invoiceDate ?? DateTime.now()).toIso8601String();
       for (final item in oldItems) {
         final productId = (item['product_id'] as num?)?.toInt();
-        if (productId == null) continue;
-        db.execute(
-          'UPDATE products SET current_stock = current_stock + ?, '
-          'updated_at = ? WHERE id = ?',
-          [(item['quantity'] as int?) ?? 0, now, productId],
-        );
+        if (productId != null) {
+          db.execute(
+            'UPDATE products SET current_stock=current_stock+?, updated_at=? WHERE id=?',
+            [(item['quantity'] as num?)?.toInt() ?? 0, now, productId],
+          );
+        }
       }
       db.execute(
-        "DELETE FROM stock_movements WHERE reference_type='sales_invoice' "
-        'AND reference_id = ?',
+        "DELETE FROM stock_movements WHERE reference_type='sales_invoice' AND reference_id=?",
         [invoiceId],
       );
       db.execute(
         "DELETE FROM document_custom_line_values WHERE document_type='sale' AND document_id=?",
         [invoiceId],
       );
-      db.execute('DELETE FROM sales_items WHERE invoice_id = ?', [invoiceId]);
+      db.execute('DELETE FROM sales_items WHERE invoice_id=?', [invoiceId]);
       for (final line in lines) {
         final productId = line.productId!;
         final lineId = db.insert(
@@ -337,8 +374,7 @@ class SalesRepository extends InvoiceRepositoryBase {
           line.customFields,
         );
         db.execute(
-          'UPDATE products SET current_stock = current_stock - ?, '
-          'last_selling_price = ?, last_qty = ?, updated_at = ? WHERE id = ?',
+          'UPDATE products SET current_stock=current_stock-?, last_selling_price=?, last_qty=?, updated_at=? WHERE id=?',
           [line.qty, line.price, line.qty, now, productId],
         );
         db.insert(
@@ -352,8 +388,8 @@ class SalesRepository extends InvoiceRepositoryBase {
             productId,
             -line.qty,
             invoiceId,
-            WarehouseStock.defaultWarehouseId(db),
-            now,
+            selectedWarehouseId,
+            documentDate,
             'بيع - فاتورة $invoiceNumber',
           ],
         );
@@ -364,15 +400,14 @@ class SalesRepository extends InvoiceRepositoryBase {
           : (oldPaid > 0 ? 'partial' : 'unpaid');
       db.execute(
         '''
-        UPDATE sales_invoices
-        SET invoice_number = ?, account_id = ?, subtotal = ?, discount = ?,
-            tax = ?, total = ?, paid_amount = ?, remaining_amount = ?,
-            payment_status = ?, notes = ?, updated_at = ?
-        WHERE id = ?
+        UPDATE sales_invoices SET invoice_number=?, account_id=?, invoice_date=?, subtotal=?,
+          discount=?, tax=?, total=?, paid_amount=?, remaining_amount=?,
+          payment_status=?, notes=?, updated_at=?, warehouse_id=?, sales_rep_account_id=? WHERE id=?
         ''',
         [
           invoiceNumber,
           accountId,
+          documentDate,
           totals.subtotal,
           totals.discount,
           totals.addition,
@@ -382,12 +417,13 @@ class SalesRepository extends InvoiceRepositoryBase {
           status,
           notes.isEmpty ? null : notes,
           now,
+          selectedWarehouseId,
+          salesRepresentativeId,
           invoiceId,
         ],
       );
       db.execute(
-        "DELETE FROM document_custom_values WHERE document_type='sale' "
-        'AND document_id = ?',
+        "DELETE FROM document_custom_values WHERE document_type='sale' AND document_id=?",
         [invoiceId],
       );
       DocumentCustomFields.saveValues(
@@ -405,12 +441,26 @@ class SalesRepository extends InvoiceRepositoryBase {
     });
   }
 
+  void _requireSalesRepresentative(int? accountId) {
+    if (accountId == null) return;
+    final rows = db.query(
+      "SELECT id FROM accounts WHERE id=? AND account_type='rep' AND is_active=1",
+      [accountId],
+    );
+    if (rows.isEmpty) {
+      throw InvoiceValidationException(
+        'مندوب البيع المحدد غير موجود أو غير نشط.',
+      );
+    }
+  }
+
   @override
   Future<({int paid, int remaining})> recordPayment({
     required int invoiceId,
     required int accountId,
     required int amount,
     required String method,
+    int? treasuryId,
   }) async {
     if (amount <= 0) {
       throw InvoiceValidationException('أدخل مبلغ تحصيل أكبر من صفر.');
@@ -452,6 +502,7 @@ class SalesRepository extends InvoiceRepositoryBase {
         moneyIn: true,
         numberPrefix: 'RCV',
         now: now,
+        treasuryId: treasuryId,
       );
       final newPaid = alreadyPaid + amount;
       final newRemaining = total - newPaid;

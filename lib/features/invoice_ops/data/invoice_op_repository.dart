@@ -1,7 +1,7 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/invoice_ops/domain/invoice_op_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/invoice_ops/domain/invoice_op_models.dart';
 
 /// Common contract used by the invoice screen. Each operation has its own
 /// concrete repository so its stock / accounting rules stay independent.
@@ -14,15 +14,28 @@ abstract class InvoiceOpRepository {
 
   bool get supportsOriginalInvoice => false;
 
-  Future<List<InvoiceProduct>> searchProducts(String term, {int limit = 60});
+  Future<List<InvoiceProduct>> searchProducts(
+    String term, {
+    int limit = 60,
+    int? warehouseId,
+  });
 
-  Future<InvoiceProduct?> findByBarcode(String code);
+  Future<InvoiceProduct?> findByBarcode(String code, {int? warehouseId});
 
-  Future<List<InvoiceProduct>> listProducts({int? categoryId});
+  Future<List<InvoiceProduct>> listProducts({
+    int? categoryId,
+    int? warehouseId,
+  });
 
   Future<List<Map<String, Object?>>> getCategories();
 
   Future<List<InvoiceAccount>> getAccounts();
+
+  Future<List<InvoiceAccount>> getSalesRepresentatives();
+
+  Future<List<InvoiceWarehouse>> getWarehouses();
+
+  Future<List<InvoiceTreasury>> getTreasuries();
 
   /// Customer-specific price for a product, when the selected operation uses it.
   int? customerLastSoldPrice(int accountId, int productId) => null;
@@ -38,6 +51,9 @@ abstract class InvoiceOpRepository {
     required String notes,
     required String paymentMethod,
     InvoicePaymentInput? payment,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     int? quotationId,
     Map<int, String> customFields = const {},
@@ -55,6 +71,9 @@ abstract class InvoiceOpRepository {
     required int addition,
     required String notes,
     required String paymentMethod,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     Map<int, String> customFields = const {},
   });
@@ -64,6 +83,7 @@ abstract class InvoiceOpRepository {
     required int accountId,
     required int amount,
     required String method,
+    int? treasuryId,
   });
 
   Future<Map<String, Object?>?> getInvoice(int invoiceId);
@@ -77,6 +97,7 @@ abstract class InvoiceOpRepository {
     if (header == null) return null;
     final rawItems = await getInvoiceItems(invoiceId);
     final lines = <InvoiceEditLine>[];
+    final invoiceWarehouseId = (header['warehouse_id'] as num?)?.toInt();
     for (final item in rawItems) {
       final productId = (item['product_id'] as num?)?.toInt();
       var available = 0;
@@ -89,7 +110,13 @@ abstract class InvoiceOpRepository {
           [productId],
         );
         if (products.isNotEmpty) {
-          available = (products.first['current_stock'] as num?)?.toInt() ?? 0;
+          available = kind.isSale && invoiceWarehouseId != null
+              ? WarehouseStock.quantityInWarehouse(
+                  db,
+                  productId,
+                  invoiceWarehouseId,
+                )
+              : (products.first['current_stock'] as num?)?.toInt() ?? 0;
           unit = '${products.first['unit_name'] ?? ''}';
         }
       }
@@ -142,6 +169,8 @@ abstract class InvoiceOpRepository {
         _documentTypeForKind(kind),
         invoiceId,
       ),
+      warehouseId: invoiceWarehouseId,
+      salesRepresentativeId: (header['sales_rep_account_id'] as num?)?.toInt(),
     );
   }
 
@@ -196,6 +225,7 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
   Future<List<InvoiceProduct>> searchProducts(
     String term, {
     int limit = 60,
+    int? warehouseId,
   }) async {
     final key = term.trim();
     if (key.isEmpty) return const [];
@@ -204,7 +234,7 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
       '''
       SELECT p.id, p.name, p.product_code, p.barcode,
              p.purchase_price, p.selling_price, p.selling_price_2,
-             p.selling_price_3, p.selling_price_4, p.current_stock,
+             p.selling_price_3, p.selling_price_4, p.current_stock, p.image_path,
              COALESCE(u.name, '') AS unit_name
       FROM products p
       LEFT JOIN units u ON u.id = p.unit_id
@@ -221,18 +251,20 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
       ''',
       [pattern, pattern, pattern, pattern, pattern, limit],
     );
-    return rows.map(_rowToProduct).toList();
+    return rows
+        .map((row) => _rowToProduct(row, warehouseId: warehouseId))
+        .toList();
   }
 
   @override
-  Future<InvoiceProduct?> findByBarcode(String code) async {
+  Future<InvoiceProduct?> findByBarcode(String code, {int? warehouseId}) async {
     final key = code.trim();
     if (key.isEmpty) return null;
     final rows = db.query(
       '''
       SELECT p.id, p.name, p.product_code, p.barcode,
              p.purchase_price, p.selling_price, p.selling_price_2,
-             p.selling_price_3, p.selling_price_4, p.current_stock,
+             p.selling_price_3, p.selling_price_4, p.current_stock, p.image_path,
              COALESCE(u.name, '') AS unit_name
       FROM products p
       LEFT JOIN units u ON u.id = p.unit_id
@@ -247,15 +279,18 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
       [key, key, key],
     );
     if (rows.isEmpty) return null;
-    return _rowToProduct(rows.first);
+    return _rowToProduct(rows.first, warehouseId: warehouseId);
   }
 
   @override
-  Future<List<InvoiceProduct>> listProducts({int? categoryId}) async {
+  Future<List<InvoiceProduct>> listProducts({
+    int? categoryId,
+    int? warehouseId,
+  }) async {
     final rows = db.query('''
       SELECT p.id, p.name, p.product_code, p.barcode,
              p.purchase_price, p.selling_price, p.selling_price_2,
-             p.selling_price_3, p.selling_price_4, p.current_stock,
+             p.selling_price_3, p.selling_price_4, p.current_stock, p.image_path,
              COALESCE(u.name, '') AS unit_name
       FROM products p
       LEFT JOIN units u ON u.id = p.unit_id
@@ -263,7 +298,9 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
         ${categoryId == null ? '' : 'AND p.category_id = ?'}
       ORDER BY p.name COLLATE NOCASE
       ''', categoryId == null ? [] : [categoryId]);
-    return rows.map(_rowToProduct).toList();
+    return rows
+        .map((row) => _rowToProduct(row, warehouseId: warehouseId))
+        .toList();
   }
 
   @override
@@ -288,6 +325,51 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
         )
         .toList();
   }
+
+  @override
+  Future<List<InvoiceAccount>> getSalesRepresentatives() async {
+    final rows = db.query(
+      "SELECT id, name, balance, account_type FROM accounts "
+      "WHERE is_active = 1 AND account_type = 'rep' "
+      'ORDER BY name COLLATE NOCASE',
+    );
+    return rows
+        .map(
+          (r) => InvoiceAccount(
+            id: (r['id'] as num).toInt(),
+            name: (r['name'] as String?) ?? '',
+            balance: (r['balance'] as num?)?.toInt() ?? 0,
+            type: (r['account_type'] as String?) ?? '',
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Future<List<InvoiceWarehouse>> getWarehouses() async => db
+      .query(
+        'SELECT id, name FROM warehouses WHERE is_active=1 ORDER BY sort_order,id',
+      )
+      .map(
+        (row) => InvoiceWarehouse(
+          id: (row['id'] as num).toInt(),
+          name: '${row['name'] ?? ''}',
+        ),
+      )
+      .toList();
+
+  @override
+  Future<List<InvoiceTreasury>> getTreasuries() async => db
+      .query(
+        'SELECT id, name FROM treasuries WHERE is_active=1 ORDER BY sort_order,id',
+      )
+      .map(
+        (row) => InvoiceTreasury(
+          id: (row['id'] as num).toInt(),
+          name: '${row['name'] ?? ''}',
+        ),
+      )
+      .toList();
 
   // ---------------------------------------------------------------------------
   // Helpers.
@@ -445,6 +527,7 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
     required bool moneyIn,
     required String numberPrefix,
     required String now,
+    int? treasuryId,
   }) {
     final stamp = DateTime.now().millisecondsSinceEpoch;
     db.insert(
@@ -475,13 +558,21 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
     // Credit/offset payments move no cash, so they must not touch the treasury.
     if (method != 'credit') {
       final treasuryRows = db.query(
-        'SELECT id FROM treasuries WHERE is_active = 1 ORDER BY id LIMIT 1',
+        treasuryId == null
+            ? 'SELECT id FROM treasuries WHERE is_active = 1 ORDER BY sort_order,id LIMIT 1'
+            : 'SELECT id FROM treasuries WHERE is_active = 1 AND id = ? LIMIT 1',
+        treasuryId == null ? const [] : [treasuryId],
       );
-      final treasuryId = treasuryRows.isEmpty
+      if (treasuryId != null && treasuryRows.isEmpty) {
+        throw InvoiceValidationException(
+          'الخزينة المختارة غير موجودة أو غير نشطة.',
+        );
+      }
+      final selectedTreasuryId = treasuryRows.isEmpty
           ? null
           : (treasuryRows.first['id'] as num).toInt();
       int balance;
-      if (treasuryId == null) {
+      if (selectedTreasuryId == null) {
         final balanceRows = db.query(
           'SELECT balance_after FROM treasury_transactions '
           'ORDER BY id DESC LIMIT 1',
@@ -495,7 +586,7 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
           'COALESCE(SUM(CASE WHEN transaction_type = \'receive\' '
           'THEN amount ELSE -amount END), 0) AS balance '
           'FROM treasury_transactions WHERE treasury_id = ?',
-          [treasuryId, treasuryId],
+          [selectedTreasuryId, selectedTreasuryId],
         );
         balance = (balanceRows.first['balance'] as num?)?.toInt() ?? 0;
       }
@@ -519,7 +610,7 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
           referenceType,
           moneyIn ? balance + amount : balance - amount,
           now,
-          treasuryId,
+          selectedTreasuryId,
         ],
       );
     }
@@ -540,7 +631,7 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
         : WarehouseStock.quantityInWarehouse(db, productId, warehouseId);
   }
 
-  InvoiceProduct _rowToProduct(Map<String, dynamic> r) {
+  InvoiceProduct _rowToProduct(Map<String, dynamic> r, {int? warehouseId}) {
     final id = r['id'] as int;
     return InvoiceProduct(
       id: id,
@@ -549,13 +640,16 @@ abstract class InvoiceRepositoryBase extends InvoiceOpRepository {
       barcode: r['barcode'] as String?,
       unitName: (r['unit_name'] as String?) ?? '',
       available: kind == InvoiceOpKind.sale
-          ? currentStockInDefaultWarehouse(id)
+          ? (warehouseId == null
+                ? currentStockInDefaultWarehouse(id)
+                : WarehouseStock.quantityInWarehouse(db, id, warehouseId))
           : (r['current_stock'] as int?) ?? 0,
       purchasePrice: (r['purchase_price'] as int?) ?? 0,
       sellingPrice: (r['selling_price'] as int?) ?? 0,
       sellingPrice2: (r['selling_price_2'] as int?) ?? 0,
       sellingPrice3: (r['selling_price_3'] as int?) ?? 0,
       sellingPrice4: (r['selling_price_4'] as int?) ?? 0,
+      imagePath: r['image_path'] as String?,
     );
   }
 

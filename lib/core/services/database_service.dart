@@ -1,4 +1,4 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
 
 /// Singleton service for accessing the application database.
 class DatabaseService {

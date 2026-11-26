@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:sqlite3/open.dart';
 
-import 'package:inventory_app/features/reports/data/sales_analysis_repository.dart';
-import 'package:inventory_app/features/reports/domain/sales_analysis_models.dart';
+import 'package:safwa/features/reports/data/sales_analysis_repository.dart';
+import 'package:safwa/features/reports/domain/sales_analysis_models.dart';
 
 void main() {
   open.overrideFor(

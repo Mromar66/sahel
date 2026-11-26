@@ -1,5 +1,5 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/features/reports/domain/daily_movement_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/features/reports/domain/daily_movement_models.dart';
 
 /// Aggregates the daily movement report straight from the same tables used by
 /// the بيع / شراء / الخزينة / المخزن screens. Nothing is cached: pressing

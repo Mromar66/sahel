@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/features/reports/domain/profit_loss_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/features/reports/domain/profit_loss_models.dart';
 
 /// Builds الأرباح والخسائر from real invoices, historical costs and the
 /// treasury ledger.

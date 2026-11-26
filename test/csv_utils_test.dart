@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/core/utils/csv_utils.dart';
+import 'package:safwa/core/utils/csv_utils.dart';
 
 void main() {
   test('quotes CSV cells and escapes embedded quotes', () {

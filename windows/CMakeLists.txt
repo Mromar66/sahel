@@ -1,10 +1,19 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
-project(inventory_app LANGUAGES CXX)
+
+# Keep the resource compiler as a command name. Visual Studio 2026 Insiders'
+# bundled CMake fails when try_compile re-discovers rc from a path containing
+# spaces, so carry the command into compiler checks as well.
+if(WIN32)
+  set(CMAKE_RC_COMPILER "rc.exe" CACHE FILEPATH "Windows resource compiler" FORCE)
+  list(APPEND CMAKE_TRY_COMPILE_PLATFORM_VARIABLES CMAKE_RC_COMPILER)
+endif()
+
+project(safwa LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "inventory_app")
+set(BINARY_NAME "safwa")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

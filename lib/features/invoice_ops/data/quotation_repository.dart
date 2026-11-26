@@ -1,6 +1,6 @@
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/features/invoice_ops/data/invoice_op_repository.dart';
-import 'package:inventory_app/features/invoice_ops/domain/invoice_op_models.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/features/invoice_ops/data/invoice_op_repository.dart';
+import 'package:safwa/features/invoice_ops/domain/invoice_op_models.dart';
 
 /// عرض أسعار — saves a priced offer for a customer. It never moves stock and
 /// never records a payment; conversion to a real sale happens on the sale page.
@@ -25,6 +25,9 @@ class QuotationRepository extends InvoiceRepositoryBase {
     required String notes,
     required String paymentMethod,
     InvoicePaymentInput? payment,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     int? quotationId,
     Map<int, String> customFields = const {},
@@ -113,6 +116,9 @@ class QuotationRepository extends InvoiceRepositoryBase {
     required int addition,
     required String notes,
     required String paymentMethod,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     Map<int, String> customFields = const {},
   }) async {
@@ -211,6 +217,7 @@ class QuotationRepository extends InvoiceRepositoryBase {
     required int accountId,
     required int amount,
     required String method,
+    int? treasuryId,
   }) async {
     throw InvoiceValidationException(
       'عرض السعر لا يسجل مدفوعات. حوّله إلى فاتورة بيع أولاً.',

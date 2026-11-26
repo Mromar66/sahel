@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/core/utils/constants.dart';
-import 'package:inventory_app/features/accounts/data/accounts_repo.dart';
-import 'package:inventory_app/features/accounts/domain/account_record.dart';
-import 'package:inventory_app/features/accounts/presentation/account_form_dialog.dart';
-import 'package:inventory_app/features/accounts/presentation/accounts_ui.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/core/utils/constants.dart';
+import 'package:safwa/features/accounts/data/accounts_repo.dart';
+import 'package:safwa/features/accounts/domain/account_record.dart';
+import 'package:safwa/features/accounts/presentation/account_form_dialog.dart';
+import 'package:safwa/features/accounts/presentation/accounts_ui.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
 
 /// الحسابات — replica of the reference accounts screen: green title, filter
 /// row with the three checkboxes, command sidebar on the left and the grouped
 /// accounts grid with its green footer.
 class AccountsListPage extends StatefulWidget {
-  const AccountsListPage({super.key});
+  const AccountsListPage({
+    super.key,
+    this.initialKind,
+    this.openNewOnStart = false,
+  });
+
+  final String? initialKind;
+  final bool openNewOnStart;
 
   @override
   State<AccountsListPage> createState() => _AccountsListPageState();
@@ -39,7 +46,14 @@ class _AccountsListPageState extends State<AccountsListPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialKind == 'supplier') _kindFilter = 'مورد';
+    if (widget.initialKind == 'customer') _kindFilter = 'عميل';
     _reload();
+    if (widget.openNewOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openForm();
+      });
+    }
   }
 
   @override
@@ -124,7 +138,10 @@ class _AccountsListPageState extends State<AccountsListPage> {
     final saved = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AccountFormDialog(account: account),
+      builder: (_) => AccountFormDialog(
+        account: account,
+        initialKind: widget.initialKind ?? 'customer',
+      ),
     );
     if (saved == true) await _reload();
   }
@@ -467,7 +484,7 @@ class _AccountsListPageState extends State<AccountsListPage> {
           icon: const Icon(
             Icons.description,
             size: 16,
-            color: Color(0xFF2FBF55),
+            color: Color(0xFF43B5DB),
           ),
         ),
         const SizedBox(height: 8),
@@ -638,8 +655,8 @@ class _AccountsListPageState extends State<AccountsListPage> {
         child: Container(
           height: 26,
           color: selected
-              ? const Color(0xFF22C04C)
-              : (hovered ? const Color(0xFF3AD964) : zebra),
+              ? const Color(0xFF43B5DB)
+              : (hovered ? const Color(0xFF8DCDE2) : zebra),
           child: Row(
             textDirection: TextDirection.rtl,
             children: [
@@ -825,7 +842,7 @@ class _DeleteAccountDialog extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 alignment: Alignment.centerRight,
                 child: const Text(
-                  'صفو لإدارة الأعمال',
+                  'Safwa Business Management',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white,

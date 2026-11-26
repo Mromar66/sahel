@@ -1,17 +1,16 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/document_custom_fields.dart';
-import 'package:inventory_app/core/services/database_service.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/features/products/data/product_repository.dart';
-import 'package:inventory_app/features/products/domain/product_entity.dart';
-import 'package:inventory_app/features/products/domain/product_provider.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/document_custom_fields.dart';
+import 'package:safwa/core/services/database_service.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/features/products/data/product_repository.dart';
+import 'package:safwa/features/products/domain/product_entity.dart';
+import 'package:safwa/features/products/domain/product_provider.dart';
 
 /// Green product form shown as a small 992×630 floating page over the products
 /// list — matching the reference screen: photo box, big blue-underlined
@@ -77,11 +76,11 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     'المزيد',
   ];
 
-  // Google palette with neutral surfaces for clear field and icon contrast.
-  static const _bg = Color(0xFFF8F9FA);
-  static const _panelHeader = Color(0xFF4285F4);
-  static const _panelBody = Color(0xFFFFFFFF);
-  static const _panelBorder = Color(0xFFDADCE0);
+  // Original green palette used by the product entry form.
+  static const _bg = Color(0xFF8DCDE2);
+  static const _panelHeader = Color(0xFF43B5DB);
+  static const _panelBody = Color(0xFF43B5DB);
+  static const _panelBorder = Color(0xFFD9E8EC);
   static const _primary = Color(0xFF1A73E8);
   static const _ink = Color(0xFF202124);
   static const _mutedInk = Color(0xFF5F6368);
@@ -397,15 +396,6 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    final viewport = MediaQuery.sizeOf(context);
-    final dialogWidth = math.min(
-      992.0,
-      (viewport.width - 24).clamp(280.0, 992.0).toDouble(),
-    );
-    final dialogHeight = math.min(
-      630.0,
-      (viewport.height - 71).clamp(280.0, 630.0).toDouble(),
-    );
     return Directionality(
       textDirection: TextDirection.rtl,
       child: withPlainInputs(
@@ -416,11 +406,11 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
             autofocus: true,
             onKeyEvent: _onKey,
             child: Container(
-              width: dialogWidth,
-              height: dialogHeight,
+              width: 992,
+              height: 630,
               decoration: BoxDecoration(
                 color: _bg,
-                border: Border.all(color: _panelBorder, width: 1.2),
+                border: Border.all(color: const Color(0xFF43B5DB), width: 1.5),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x44000000),
@@ -559,7 +549,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                 )
               : Center(
                   child: CustomPaint(
-                    painter: _CameraPainter(color: _primary),
+                    painter: _CameraPainter(color: const Color(0xFF8DCDE2)),
                     size: const Size(54, 44),
                   ),
                 ),
@@ -611,7 +601,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
     String label,
     TextEditingController controller, {
     String? suffix,
-    Color labelColor = _ink,
+    Color labelColor = Colors.white,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,8 +675,8 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
     return HoverBuilder(
       builder: (context, hovered) {
         final background = active
-            ? const Color(0xFFE8F0FE)
-            : (hovered ? kHoverYellow : const Color(0xFFF1F3F4));
+            ? const Color(0xFFD9E8EC)
+            : (hovered ? kHoverYellow : const Color(0xFFD9E8EC));
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => setState(() => _tabIndex = index),
@@ -703,7 +693,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                   fontWeight: active ? FontWeight.w800 : FontWeight.w600,
                   color: (hovered && !active)
                       ? const Color(0xFF1A1A1A)
-                      : (active ? _primary : _mutedInk),
+                      : const Color(0xFF248EB2),
                 ),
               ),
             ),
@@ -750,7 +740,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('القائمة الأولى: ${_priceListNames[0]} (تُعدّل من إعداد صفو)'),
+          Text('القائمة الأولى: ${_priceListNames[0]} (تُعدّل من إعداد Safwa)'),
           const SizedBox(height: 10),
           for (final entry in <(int, TextEditingController)>[
             (1, _sellingPrice2),
@@ -762,7 +752,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           ],
           const Text(
             'الأسعار الإضافية مستقلة عن السعر الأول؛ تركها بصفر لا يغيّر السعر الافتراضي.',
-            style: TextStyle(fontSize: 11.5, color: Color(0xFFE2F8EB)),
+            style: TextStyle(fontSize: 11.5, color: Color(0xFFF7F9FA)),
           ),
         ],
       ),
@@ -818,7 +808,10 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                     filled: false,
                     border: InputBorder.none,
                     hintText: 'التصنيف',
-                    hintStyle: TextStyle(fontSize: 12.5, color: Color(0xFF8AA591)),
+                    hintStyle: TextStyle(
+                      fontSize: 12.5,
+                      color: Color(0xFF8DCDE2),
+                    ),
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 7,
@@ -833,7 +826,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                 ? const Center(
                     child: Text(
                       'لا توجد تصنيفات',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFE2F8EB)),
+                      style: TextStyle(fontSize: 12, color: Color(0xFFF7F9FA)),
                     ),
                   )
                 : ListView.builder(
@@ -852,7 +845,10 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Row(
                               children: [
-                                _checkboxGlyph(checked: selected, onGreen: true),
+                                _checkboxGlyph(
+                                  checked: selected,
+                                  onGreen: true,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -1022,7 +1018,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           ? const Center(
               child: Text(
                 'لا توجد وحدات مسجلة',
-                style: TextStyle(fontSize: 12, color: Color(0xFFE2F8EB)),
+                style: TextStyle(fontSize: 12, color: Color(0xFFF7F9FA)),
               ),
             )
           : ListView.builder(
@@ -1055,7 +1051,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                             unit['abbreviation'] as String? ?? '',
                             style: const TextStyle(
                               fontSize: 11.5,
-                              color: Color(0xFFE2F8EB),
+                              color: Color(0xFFF7F9FA),
                             ),
                           ),
                         ],
@@ -1150,10 +1146,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
             color: Colors.white,
             child: TextField(
               controller: controller,
-              style: const TextStyle(
-                fontSize: 12.5,
-                color: Color(0xFF1A1A1A),
-              ),
+              style: const TextStyle(fontSize: 12.5, color: Color(0xFF1A1A1A)),
               textAlignVertical: TextAlignVertical.center,
               decoration: const InputDecoration(
                 isDense: true,
@@ -1227,12 +1220,12 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
       decoration: BoxDecoration(
         color: checked ? Colors.white : Colors.transparent,
         border: Border.all(
-          color: onGreen ? Colors.white : const Color(0xFF7FBF90),
+          color: onGreen ? Colors.white : const Color(0xFF8DCDE2),
         ),
         borderRadius: BorderRadius.circular(2),
       ),
       child: checked
-          ? const Icon(Icons.check, size: 12, color: Color(0xFF2FB753))
+          ? const Icon(Icons.check, size: 12, color: Color(0xFF43B5DB))
           : null,
     );
   }
@@ -1246,7 +1239,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
         onTap: () => setState(() => _panelsVisible = !_panelsVisible),
         child: Container(
           width: 26,
-          color: const Color(0xFF2FB753),
+          color: const Color(0xFF43B5DB),
           child: Center(
             child: CustomPaint(
               painter: _CollapsePainter(
@@ -1263,68 +1256,57 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
 
   // Bottom buttons: حفظ / حفظ جديد / حفظ | تكرار / إلغاء.
   Widget _buildBottomButtons() {
-    return LayoutBuilder(
-      builder: (context, constraints) => FittedBox(
-        fit: BoxFit.scaleDown,
-        child: SizedBox(
-          width: math.max(720.0, constraints.maxWidth),
-          child: Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              TextButton.icon(
-                onPressed: _saving ? null : _editCustomFields,
-                icon: const Icon(Icons.tune, size: 16),
-                label: const Text(
-                  'حقول إضافية',
-                  style: TextStyle(fontSize: 11),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: _ink,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      _saveButton(
-                        label: 'حفظ',
-                        shortcut: 'ENTER',
-                        style: _SaveStyle.yellow,
-                        glyphKind: _TickKind.check,
-                        onTap: _saving ? null : () => _save(),
-                      ),
-                      const SizedBox(width: 10),
-                      _saveButton(
-                        label: 'حفظ جديد',
-                        shortcut: 'CTRL + ENTER',
-                        style: _SaveStyle.white,
-                        glyphKind: _TickKind.plus,
-                        onTap: _saving ? null : () => _save(newAfter: true),
-                      ),
-                      const SizedBox(width: 10),
-                      _saveButton(
-                        label: 'حفظ | تكرار',
-                        shortcut: 'ALT + ENTER',
-                        style: _SaveStyle.white,
-                        glyphKind: _TickKind.plus,
-                        onTap: _saving ? null : () => _save(closeAfter: true),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              _cancelButton(),
-            ],
+    return Row(
+      textDirection: TextDirection.rtl,
+      children: [
+        TextButton.icon(
+          onPressed: _saving ? null : _editCustomFields,
+          icon: const Icon(Icons.tune, size: 16),
+          label: const Text('حقول إضافية', style: TextStyle(fontSize: 11)),
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF1A1A1A),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
+            ),
           ),
         ),
-      ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              textDirection: TextDirection.rtl,
+              children: [
+                _saveButton(
+                  label: 'حفظ',
+                  shortcut: 'ENTER',
+                  style: _SaveStyle.yellow,
+                  glyphKind: _TickKind.check,
+                  onTap: _saving ? null : () => _save(),
+                ),
+                const SizedBox(width: 10),
+                _saveButton(
+                  label: 'حفظ جديد',
+                  shortcut: 'CTRL + ENTER',
+                  style: _SaveStyle.white,
+                  glyphKind: _TickKind.plus,
+                  onTap: _saving ? null : () => _save(newAfter: true),
+                ),
+                const SizedBox(width: 10),
+                _saveButton(
+                  label: 'حفظ | تكرار',
+                  shortcut: 'ALT + ENTER',
+                  style: _SaveStyle.white,
+                  glyphKind: _TickKind.plus,
+                  onTap: _saving ? null : () => _save(closeAfter: true),
+                ),
+              ],
+            ),
+          ),
+        ),
+        _cancelButton(),
+      ],
     );
   }
 
@@ -1344,10 +1326,10 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           builder: (context, hovered) {
             final background = hovered
                 ? kHoverYellow
-                : (yellow ? const Color(0xFFFBBC04) : Colors.white);
+                : (yellow ? const Color(0xFFE6C33C) : Colors.white);
             final border = hovered
-                ? const Color(0xFFF9AB00)
-                : (yellow ? const Color(0xFFF9AB00) : _panelBorder);
+                ? const Color(0xFFC7A62B)
+                : (yellow ? const Color(0xFFC7A62B) : const Color(0xFFD9E8EC));
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onTap,
@@ -1368,14 +1350,16 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                         style: const TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w800,
-                          color: _ink,
+                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                       const SizedBox(width: 6),
                       CustomPaint(
                         painter: _TickPainter(
                           type: glyphKind,
-                          color: (yellow || hovered) ? _ink : _primary,
+                          color: (yellow || hovered)
+                              ? const Color(0xFF1A1A1A)
+                              : const Color(0xFF2F80ED),
                         ),
                         size: const Size(11, 11),
                       ),
@@ -1391,7 +1375,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           shortcut,
           style: const TextStyle(
             fontSize: 10,
-            color: _mutedInk,
+            color: Color(0xFF248EB2),
             letterSpacing: 0.4,
           ),
         ),
@@ -1408,16 +1392,18 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
           width: 152,
           height: 37,
           decoration: BoxDecoration(
-            color: hovered ? kHoverYellow : const Color(0xFFF1F3F4),
+            color: hovered ? kHoverYellow : const Color(0xFFD6D6D6),
             border: Border.all(
-              color: hovered ? const Color(0xFFC7A62B) : _panelBorder,
+              color: hovered
+                  ? const Color(0xFFC7A62B)
+                  : const Color(0xFFB9B9B9),
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
               CustomPaint(
-                painter: _PowerPainter(color: _ink),
+                painter: _PowerPainter(color: Color(0xFF333333)),
                 size: Size(12, 12),
               ),
               SizedBox(width: 7),
@@ -1426,7 +1412,7 @@ if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Outpu
                 style: TextStyle(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w800,
-                  color: _ink,
+                  color: Color(0xFF333333),
                 ),
               ),
             ],
@@ -1587,18 +1573,17 @@ class _TickPainter extends CustomPainter {
 }
 
 class _CodeGlyphPainter extends CustomPainter {
-  const _CodeGlyphPainter({required this.type, required this.color});
+  const _CodeGlyphPainter({required this.type});
 
   final _CodeGlyph type;
-  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final paint = Paint()..color = color;
+    final paint = Paint()..color = const Color(0xFF43B5DB);
     final stroke = Paint()
-      ..color = color
+      ..color = const Color(0xFF43B5DB)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.8
       ..strokeCap = StrokeCap.round;
@@ -1639,8 +1624,7 @@ class _CodeGlyphPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CodeGlyphPainter oldDelegate) =>
-      oldDelegate.type != type || oldDelegate.color != color;
+  bool shouldRepaint(_CodeGlyphPainter oldDelegate) => oldDelegate.type != type;
 }
 
 class _PowerPainter extends CustomPainter {

@@ -2,7 +2,7 @@
 /// new-purchase screen: sale, sales return, purchase return and quotation.
 library;
 
-import 'package:inventory_app/app/models/product_search_item.dart';
+import 'package:safwa/app/models/product_search_item.dart';
 
 /// Which operation an [InvoiceOpPage] is running.
 enum InvoiceOpKind {
@@ -41,6 +41,7 @@ class InvoiceProduct implements ProductSearchItem {
     required this.available,
     required this.purchasePrice,
     required this.sellingPrice,
+    this.imagePath,
     this.sellingPrice2 = 0,
     this.sellingPrice3 = 0,
     this.sellingPrice4 = 0,
@@ -72,6 +73,21 @@ class InvoiceProduct implements ProductSearchItem {
   final int sellingPrice2;
   final int sellingPrice3;
   final int sellingPrice4;
+  final String? imagePath;
+}
+
+class InvoiceWarehouse {
+  const InvoiceWarehouse({required this.id, required this.name});
+
+  final int id;
+  final String name;
+}
+
+class InvoiceTreasury {
+  const InvoiceTreasury({required this.id, required this.name});
+
+  final int id;
+  final String name;
 }
 
 /// An account that can be attached to an invoice. Customer and supplier
@@ -142,6 +158,7 @@ class InvoicePaymentInput {
     required this.accountId,
     required this.amount,
     required this.method,
+    this.treasuryId,
   });
 
   final int accountId;
@@ -149,6 +166,7 @@ class InvoicePaymentInput {
 
   /// One of cash / card / bank / credit.
   final String method;
+  final int? treasuryId;
 }
 
 /// Result of a successful save.
@@ -286,6 +304,8 @@ class InvoiceEditData {
     required this.originalInvoiceId,
     required this.lines,
     required this.customFields,
+    this.warehouseId,
+    this.salesRepresentativeId,
   });
 
   final int id;
@@ -301,4 +321,6 @@ class InvoiceEditData {
   final int? originalInvoiceId;
   final List<InvoiceEditLine> lines;
   final Map<int, String> customFields;
+  final int? warehouseId;
+  final int? salesRepresentativeId;
 }

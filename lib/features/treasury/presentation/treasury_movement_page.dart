@@ -6,17 +6,17 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/shared_data_grid.dart';
-import 'package:inventory_app/app/widgets/shop_dialog_kit.dart';
-import 'package:inventory_app/app/widgets/document_custom_fields.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
-import 'package:inventory_app/features/products/presentation/export_dialog.dart';
-import 'package:inventory_app/features/treasury/data/treasury_movement_repository.dart';
-import 'package:inventory_app/features/treasury/domain/treasury_movement_models.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/shared_data_grid.dart';
+import 'package:safwa/app/widgets/shop_dialog_kit.dart';
+import 'package:safwa/app/widgets/document_custom_fields.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/features/products/presentation/export_dialog.dart';
+import 'package:safwa/features/treasury/data/treasury_movement_repository.dart';
+import 'package:safwa/features/treasury/domain/treasury_movement_models.dart';
 
 part 'treasury_movement_dialogs.dart';
 part 'treasury_movement_layout.dart';
@@ -95,7 +95,9 @@ String _errorText(Object error) => error is TreasuryValidationException
 /// حركة الخزينة — a fully wired treasury report built on the same shell,
 /// fields, buttons and interactive [SharedDataGrid] used by شراء.
 class TreasuryMovementPage extends StatefulWidget {
-  const TreasuryMovementPage({super.key});
+  const TreasuryMovementPage({super.key, this.newMovement});
+
+  final String? newMovement;
 
   @override
   State<TreasuryMovementPage> createState() => _TreasuryMovementPageState();
@@ -142,7 +144,11 @@ class _TreasuryMovementPageState extends State<TreasuryMovementPage> {
     _fromTime.text = '00:00';
     _toDate.text = _dateText(now);
     _toTime.text = _timeText(now);
-    _refresh(initial: true);
+    _refresh(initial: true).then((_) {
+      if (!mounted) return;
+      if (widget.newMovement == 'expense') _openExpense();
+      if (widget.newMovement == 'receive') _openReceive();
+    });
   }
 
   @override
@@ -178,7 +184,12 @@ class _TreasuryMovementPageState extends State<TreasuryMovementPage> {
   void _rebuild(VoidCallback fn) => setState(fn);
 
   void _close() {
-    context.go('/');
+    removeCurrentAppTab(context);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
   }
 
   Future<void> _refresh({bool initial = false}) async {

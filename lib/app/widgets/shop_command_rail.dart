@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 /// Left command rail shared by شراء and جرد مخزن.
 class ShopCommandRail extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:inventory_app/core/services/database_service.dart';
+import 'package:safwa/core/services/database_service.dart';
 
 class DocumentTypes {
   DocumentTypes._();

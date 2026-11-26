@@ -2,8 +2,8 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/features/invoices/data/invoice_archive_repository.dart';
-import 'package:inventory_app/features/invoices/domain/invoice_archive_models.dart';
+import 'package:safwa/features/invoices/data/invoice_archive_repository.dart';
+import 'package:safwa/features/invoices/domain/invoice_archive_models.dart';
 import 'package:sqlite3/open.dart';
 import 'package:sqlite3/sqlite3.dart';
 

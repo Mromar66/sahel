@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/features/accounts/data/accounts_repo.dart';
-import 'package:inventory_app/features/accounts/domain/account_record.dart';
-import 'package:inventory_app/features/accounts/presentation/accounts_ui.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/features/accounts/data/accounts_repo.dart';
+import 'package:safwa/features/accounts/domain/account_record.dart';
+import 'package:safwa/features/accounts/presentation/accounts_ui.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
 
 /// متابعة سداد الشيكات والأقساط — replica of the reference report screen:
 /// the two-column filter block, command sidebar and the green checks grid.
@@ -650,8 +650,8 @@ class _ChecksPageState extends State<ChecksPage> {
         child: Container(
           height: 26,
           color: selected
-              ? const Color(0xFF1DBE48)
-              : (hovered ? const Color(0xFF42DE6C) : kAcctTableGreen),
+              ? const Color(0xFF43B5DB)
+              : (hovered ? const Color(0xFF8DCDE2) : kAcctTableGreen),
           child: Row(
             textDirection: TextDirection.rtl,
             children: [
@@ -674,7 +674,7 @@ class _ChecksPageState extends State<ChecksPage> {
         text,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 12, color: Color(0xFF0F3F1C)),
+        style: const TextStyle(fontSize: 12, color: Color(0xFF248EB2)),
       ),
     );
     return width == null
@@ -712,7 +712,7 @@ class _ChecksPageState extends State<ChecksPage> {
 
   Widget _hSep() => Container(width: 1, color: const Color(0xFFC0C0C0));
 
-  Widget _dSep() => Container(width: 1, color: const Color(0xFF9AD9AB));
+  Widget _dSep() => Container(width: 1, color: const Color(0xFF8DCDE2));
 
   String _fmtDate(DateTime date) {
     final d = date.day.toString().padLeft(2, '0');
@@ -757,7 +757,7 @@ class _MoneyDot extends StatelessWidget {
       width: 22,
       height: 22,
       decoration: const BoxDecoration(
-        color: Color(0xFF2FBF55),
+        color: Color(0xFF43B5DB),
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,

@@ -64,7 +64,7 @@ class _OpWarehousePickerDialog extends StatelessWidget {
                               const Icon(
                                 Icons.warehouse_outlined,
                                 size: 17,
-                                color: Color(0xFF336641),
+                                color: Color(0xFF43B5DB),
                               ),
                               const SizedBox(width: 7),
                               Expanded(
@@ -82,7 +82,7 @@ class _OpWarehousePickerDialog extends StatelessWidget {
                                 const Icon(
                                   Icons.check,
                                   size: 16,
-                                  color: Color(0xFF2E7D43),
+                                  color: Color(0xFF43B5DB),
                                 ),
                             ],
                           ),
@@ -104,7 +104,7 @@ class _OpSubscriptionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShopDialogFrame(
-      title: 'اشتراك صفو',
+      title: 'اشتراك Safwa',
       width: 430,
       actions: [
         shopDialogButton(
@@ -127,7 +127,7 @@ class _OpSubscriptionDialog extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Text(
-            'للحصول على نسخة مرخصة ودعم فني وتحديثات، تواصل مع فريق صفو '
+            'للحصول على نسخة مرخصة ودعم فني وتحديثات، تواصل مع فريق Safwa '
             'عبر بيانات الاتصال الموجودة في شاشة «حول البرنامج».',
             textDirection: TextDirection.rtl,
             style: TextStyle(fontSize: 12.5, height: 1.6, color: _kInk),

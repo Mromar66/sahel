@@ -8,9 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/core/utils/csv_utils.dart';
-import 'package:inventory_app/features/products/data/product_repository.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/core/utils/csv_utils.dart';
+import 'package:safwa/features/products/data/product_repository.dart';
 
 /// A saved-file result shown to the user after exporting.
 class ExportResult {
@@ -64,7 +64,7 @@ Future<pw.Document?> buildTablePdfDocument({
               color: PdfColors.white,
             ),
             headerDecoration: const pw.BoxDecoration(
-              color: PdfColor.fromInt(0xFF31BB68),
+              color: PdfColor.fromInt(0xFF43B5DB),
             ),
             cellStyle: const pw.TextStyle(fontSize: 8),
             cellAlignment: pw.Alignment.centerRight,
@@ -1059,19 +1059,19 @@ class _ExcelPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const green = Color(0xFF217337);
-    const darkGreen = Color(0xFF1A5C2C);
+    const green = Color(0xFF43B5DB);
+    const darkGreen = Color(0xFF248EB2);
 
     // The white spreadsheet sheet on the right, holding the green grid.
     final sheet = RRect.fromRectAndRadius(
       const Rect.fromLTWH(21, 6, 19, 28),
       const Radius.circular(1.5),
     );
-    canvas.drawRRect(sheet, Paint()..color = const Color(0xFFFBFDFB));
+    canvas.drawRRect(sheet, Paint()..color = const Color(0xFFF7F9FA));
     canvas.drawRRect(
       sheet,
       Paint()
-        ..color = const Color(0xFFD7E4D9)
+        ..color = const Color(0xFFD9E8EC)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.8,
     );
@@ -1143,7 +1143,7 @@ class _WhatsAppBubblePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const green = Color(0xFF25D353);
+    const green = Color(0xFF43B5DB);
     final center = Offset(size.width / 2, size.height / 2 - 1);
     final r = size.width / 2 - 3.2;
 
@@ -1211,7 +1211,7 @@ class _PngPainter extends CustomPainter {
         ..lineTo(size.width * 0.42, size.height * 0.30)
         ..lineTo(size.width * 0.78, size.height)
         ..close(),
-      Paint()..color = const Color(0xFF2FA44E),
+      Paint()..color = const Color(0xFF43B5DB),
     );
     canvas.drawPath(
       Path()
@@ -1219,7 +1219,7 @@ class _PngPainter extends CustomPainter {
         ..lineTo(size.width * 0.66, size.height * 0.46)
         ..lineTo(size.width, size.height)
         ..close(),
-      Paint()..color = const Color(0xFF1F7F39),
+      Paint()..color = const Color(0xFF43B5DB),
     );
     canvas.restore();
 

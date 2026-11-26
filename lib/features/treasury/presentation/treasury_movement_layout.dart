@@ -547,7 +547,7 @@ extension _TreasuryMovementLayout on _TreasuryMovementPageState {
   }) {
     final background = green ? _kPanelGreen : _kYellow;
     final labelColor = green
-        ? const Color(0xFFE8FFF2)
+        ? const Color(0xFFF7F9FA)
         : const Color(0xFF5C4500);
     final ink = green ? Colors.white : _kInk;
     return Container(
@@ -752,7 +752,7 @@ extension _TreasuryMovementLayout on _TreasuryMovementPageState {
               'إدخال حركة الخزينة اليومية',
               Icons.payments_outlined,
               _openDailyEntry,
-              color: const Color(0xFF1F8A3C),
+              color: const Color(0xFF43B5DB),
             ),
             const SizedBox(height: 4),
             _railWideTile(
@@ -927,7 +927,7 @@ extension _TreasuryMovementLayout on _TreasuryMovementPageState {
     return Container(
       width: 16,
       height: 16,
-      color: const Color(0xFF087425),
+      color: const Color(0xFF248EB2),
       alignment: Alignment.center,
       child: const Text(
         'x',

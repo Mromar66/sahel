@@ -1,5 +1,5 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/features/accounts/domain/account_entity.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/features/accounts/domain/account_entity.dart';
 
 class AccountRepository {
   AccountRepository._internal();

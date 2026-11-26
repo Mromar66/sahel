@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/features/products/presentation/export_dialog.dart';
-import 'package:inventory_app/features/reports/data/profit_loss_repository.dart';
-import 'package:inventory_app/features/reports/domain/profit_loss_models.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/features/products/presentation/export_dialog.dart';
+import 'package:safwa/features/reports/data/profit_loss_repository.dart';
+import 'package:safwa/features/reports/domain/profit_loss_models.dart';
 
 part 'profit_loss_layout.dart';
 
@@ -115,7 +115,14 @@ class _ProfitLossPageState extends State<ProfitLossPage> {
 
   void _rebuild(VoidCallback fn) => setState(fn);
 
-  void _close() => context.go('/');
+  void _close() {
+    removeCurrentAppTab(context);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
 
   void _refreshFilterLists() {
     try {

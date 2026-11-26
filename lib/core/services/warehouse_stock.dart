@@ -1,4 +1,4 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
 
 /// Warehouse balances are derived from the movement ledger while preserving
 /// the global product total for legacy movements that had no warehouse.

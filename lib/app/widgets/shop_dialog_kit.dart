@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 /// Light dialog frame shared by the شراء and جرد مخزن screens. The app theme is
 /// dark, so dialogs opt out explicitly instead of inheriting the dark surface.

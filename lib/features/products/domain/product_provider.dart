@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:inventory_app/core/utils/currency_utils.dart';
-import 'package:inventory_app/features/products/data/product_repository.dart';
-import 'package:inventory_app/features/products/domain/product_entity.dart';
+import 'package:safwa/core/utils/currency_utils.dart';
+import 'package:safwa/features/products/data/product_repository.dart';
+import 'package:safwa/features/products/domain/product_entity.dart';
 
 /// Riverpod provider for the product repository.
 final productRepositoryProvider = Provider<ProductRepository>((ref) {

@@ -1,6 +1,6 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/features/accounts/domain/account_record.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/features/accounts/domain/account_record.dart';
 
 /// Data access for the accounts module (list, form, statements, checks).
 class AccountsRepo {

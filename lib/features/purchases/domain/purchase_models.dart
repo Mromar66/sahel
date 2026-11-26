@@ -1,7 +1,7 @@
 /// Domain models for the شراء (new purchase) screen.
 library;
 
-import 'package:inventory_app/app/models/product_search_item.dart';
+import 'package:safwa/app/models/product_search_item.dart';
 
 /// A product row returned by the purchase product search.
 class PurchaseProduct implements ProductSearchItem {

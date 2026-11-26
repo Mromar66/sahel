@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/core/services/database_service.dart';
-import 'package:inventory_app/features/accounts/presentation/accounts_ui.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/core/services/database_service.dart';
+import 'package:safwa/features/accounts/presentation/accounts_ui.dart';
 
 /// "معاينة - بيانات الجدول" window shown from the accounts list print action.
 /// Replica of the reference preview window: pale-green title bar, toolbar,
@@ -110,8 +110,8 @@ class _PrintPreviewDialogState extends State<PrintPreviewDialog> {
     return Container(
       height: 26,
       decoration: const BoxDecoration(
-        color: Color(0xFFE9F7F0),
-        border: Border(bottom: BorderSide(color: Color(0xFFCFE9D6))),
+        color: Color(0xFFF7F9FA),
+        border: Border(bottom: BorderSide(color: Color(0xFFD9E8EC))),
       ),
       child: Row(
         children: [
@@ -119,7 +119,7 @@ class _PrintPreviewDialogState extends State<PrintPreviewDialog> {
           const Icon(
             Icons.insert_drive_file,
             size: 15,
-            color: Color(0xFF2FB753),
+            color: Color(0xFF43B5DB),
           ),
           const SizedBox(width: 5),
           Expanded(

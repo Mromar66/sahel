@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/features/purchases/data/purchase_repository.dart';
-import 'package:inventory_app/features/purchases/domain/purchase_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/features/purchases/data/purchase_repository.dart';
+import 'package:safwa/features/purchases/domain/purchase_models.dart';
 
 /// End-to-end smoke test of the purchase repository against a *copy* of the
 /// live database. Run with: dart run tool/purchase_smoke.dart

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 /// Red confirmation dialog — exact copy of the reference:
-/// red frame, white title strip "صفو لإدارة الأعمال" with a close X on the
+/// red frame, white title strip "Safwa Business Management" with a close X on the
 /// left, a question bubble, bold "هل أنت متأكد ؟", a yellow [نعم ✓] button
 /// with the ENTER shortcut hint and a gray [لا ✗] button with ESC.
 Future<bool> showConfirmDeleteDialog(
@@ -103,7 +103,7 @@ class _ConfirmDeleteDialogState extends State<_ConfirmDeleteDialog> {
       child: Row(
         children: [
           const Text(
-            'صفو لإدارة الأعمال',
+            'Safwa Business Management',
             style: TextStyle(
               fontSize: 14.5,
               fontWeight: FontWeight.w700,

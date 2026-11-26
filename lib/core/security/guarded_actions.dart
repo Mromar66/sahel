@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/security/password_hasher.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/security/password_hasher.dart';
 
 /// When the optional row deletion password is configured, require it before
 /// removing an item from an invoice. Empty configuration preserves the

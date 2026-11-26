@@ -1,6 +1,6 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/products/domain/product_entity.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/products/domain/product_entity.dart';
 
 /// A single row in the products list with joined lookup names and prices.
 class ProductListRow {

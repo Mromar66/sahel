@@ -1,7 +1,7 @@
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/invoice_ops/data/invoice_op_repository.dart';
-import 'package:inventory_app/features/invoice_ops/domain/invoice_op_models.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/invoice_ops/data/invoice_op_repository.dart';
+import 'package:safwa/features/invoice_ops/domain/invoice_op_models.dart';
 
 /// مرتجع شراء — builds a return document from a saved purchase invoice, takes
 /// the returned quantities out of stock and records any refund from the
@@ -138,6 +138,9 @@ class PurchaseReturnRepository extends InvoiceRepositoryBase {
     required String notes,
     required String paymentMethod,
     InvoicePaymentInput? payment,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     int? quotationId,
     Map<int, String> customFields = const {},
@@ -290,6 +293,7 @@ class PurchaseReturnRepository extends InvoiceRepositoryBase {
           moneyIn: true,
           numberPrefix: 'RCV',
           now: now,
+          treasuryId: payment?.treasuryId,
         );
       }
 
@@ -319,6 +323,9 @@ class PurchaseReturnRepository extends InvoiceRepositoryBase {
     required int addition,
     required String notes,
     required String paymentMethod,
+    DateTime? invoiceDate,
+    int? warehouseId,
+    int? salesRepresentativeId,
     int? originalInvoiceId,
     Map<int, String> customFields = const {},
   }) async {
@@ -538,6 +545,7 @@ class PurchaseReturnRepository extends InvoiceRepositoryBase {
     required int accountId,
     required int amount,
     required String method,
+    int? treasuryId,
   }) async {
     if (amount <= 0) {
       throw InvoiceValidationException('أدخل مبلغ تحصيل أكبر من صفر.');
@@ -576,6 +584,7 @@ class PurchaseReturnRepository extends InvoiceRepositoryBase {
         moneyIn: true,
         numberPrefix: 'RCV',
         now: now,
+        treasuryId: treasuryId,
       );
       final newPaid = alreadyPaid + amount;
       final newRemaining = total - newPaid;

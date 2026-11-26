@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/features/products/data/product_repository.dart';
-import 'package:inventory_app/features/products/domain/product_entity.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/features/products/data/product_repository.dart';
+import 'package:safwa/features/products/domain/product_entity.dart';
 
 /// Point-of-sale «بيع» page — pixel replica of the reference sales screen.
 class SalesPage extends StatefulWidget {
@@ -14,9 +14,9 @@ class SalesPage extends StatefulWidget {
 }
 
 const Color _kYellow = Color(0xFFF7D244);
-const Color _kGreen = Color(0xFF30D25B);
-const Color _kPanelGreen = Color(0xFF31BB56);
-const Color _kSellGreen = Color(0xFF00C133);
+const Color _kGreen = Color(0xFF8DCDE2);
+const Color _kPanelGreen = Color(0xFF43B5DB);
+const Color _kSellGreen = Color(0xFF43B5DB);
 const Color _kBlue = Color(0xFF0059E8);
 const Color _kRed = Color(0xFFD8432E);
 const Color _kHeader = Color(0xFFDDDDDD);
@@ -161,6 +161,7 @@ class _SalesPageState extends State<SalesPage> {
   }
 
   void _close() {
+    removeCurrentAppTab(context);
     if (context.canPop()) {
       context.pop();
     } else {
@@ -470,10 +471,10 @@ class _SalesPageState extends State<SalesPage> {
             width: 13,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.arrow_drop_up, size: 11, color: Color(0xFF555555)),
-                SizedBox(height: 5),
-                Icon(Icons.arrow_drop_down, size: 11, color: Color(0xFF555555)),
+                Icon(Icons.arrow_drop_up, size: 9, color: Color(0xFF555555)),
+                Icon(Icons.arrow_drop_down, size: 9, color: Color(0xFF555555)),
               ],
             ),
           ),
@@ -823,7 +824,7 @@ class _SalesPageState extends State<SalesPage> {
           height: 37,
           color: hovered ? kHoverYellow : _kYellow,
           alignment: Alignment.center,
-          child: const Icon(Icons.check, size: 28, color: Color(0xFF42B460)),
+          child: const Icon(Icons.check, size: 28, color: Color(0xFF43B5DB)),
         ),
       ),
     );
@@ -1133,8 +1134,8 @@ class _SalesPageState extends State<SalesPage> {
         child: Container(
           height: 24,
           color: selected
-              ? const Color(0xFFB6F0C5)
-              : (hovered ? const Color(0xFFD8F7E0) : Colors.white),
+              ? const Color(0xFFD9E8EC)
+              : (hovered ? const Color(0xFFF7F9FA) : Colors.white),
           child: Row(
             textDirection: TextDirection.rtl,
             children: [
@@ -1791,12 +1792,12 @@ class _SalesPageState extends State<SalesPage> {
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             clipBehavior: Clip.antiAlias,
             child: Image.asset(
-              'assets/icons/logo.png',
+              'assets/icons/safwa_logo.png',
               width: 120,
               height: 119,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stack) => Container(
-                color: const Color(0xFF27B04C),
+                color: const Color(0xFF43B5DB),
                 child: const Icon(
                   Icons.shopping_cart,
                   size: 62,
@@ -2054,7 +2055,7 @@ class _SalesPageState extends State<SalesPage> {
                 child: Container(
                   width: 16,
                   height: 16,
-                  color: const Color(0xFF087425),
+                  color: const Color(0xFF248EB2),
                   alignment: Alignment.center,
                   child: const Text(
                     'x',
@@ -2295,7 +2296,7 @@ class _SalesPageState extends State<SalesPage> {
         children: [
           const Expanded(
             child: Text(
-              'هذه نسخة تجريبية غير مرخصة. للتعرّف على برنامج صفو ومدى ملاءمته لمشروعك، ستتوقف بعد فترة من الاستخدام.',
+              'هذه نسخة تجريبية غير مرخصة. للتعرّف على برنامج Safwa ومدى ملاءمته لمشروعك، ستتوقف بعد فترة من الاستخدام.',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,

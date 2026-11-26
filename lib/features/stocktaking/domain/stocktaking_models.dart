@@ -4,7 +4,7 @@
 /// share widgets but never share business rules.
 library;
 
-import 'package:inventory_app/app/models/product_search_item.dart';
+import 'package:safwa/app/models/product_search_item.dart';
 
 /// A product row returned by the stocktaking product search.
 class StocktakingProduct implements ProductSearchItem {

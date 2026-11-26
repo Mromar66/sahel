@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 // Reference palette for the accounts screens.
-const Color kAcctGreen = Color(0xFF3CCB62);
-const Color kAcctGreenText = Color(0xFF31BB56);
-const Color kAcctPanelHeader = Color(0xFF2FB753);
-const Color kAcctPanelBody = Color(0xFF35C25B);
-const Color kAcctPanelBorder = Color(0xFF9FE3B1);
-const Color kAcctTableGreen = Color(0xFF30D25B);
+const Color kAcctGreen = Color(0xFF8DCDE2);
+const Color kAcctGreenText = Color(0xFF43B5DB);
+const Color kAcctPanelHeader = Color(0xFF43B5DB);
+const Color kAcctPanelBody = Color(0xFF43B5DB);
+const Color kAcctPanelBorder = Color(0xFFD9E8EC);
+const Color kAcctTableGreen = Color(0xFF8DCDE2);
 const Color kAcctTile = Color(0xFFF0F0F0);
 const Color kAcctBorder = Color(0xFFC0C0C0);
 const Color kAcctText = Color(0xFF1A1A1A);
@@ -155,7 +155,7 @@ class _MoneyGlyph extends StatelessWidget {
       width: 26,
       height: 26,
       decoration: const BoxDecoration(
-        color: Color(0xFF2FBF55),
+        color: Color(0xFF43B5DB),
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,

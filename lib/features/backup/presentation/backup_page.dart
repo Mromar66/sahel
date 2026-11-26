@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:inventory_app/app/theme/app_theme.dart';
-import 'package:inventory_app/core/security/password_hasher.dart';
-import 'package:inventory_app/core/services/auth_session.dart';
-import 'package:inventory_app/core/services/backup_service.dart';
-import 'package:inventory_app/features/settings/data/settings_repository.dart';
+import 'package:safwa/app/theme/app_theme.dart';
+import 'package:safwa/core/security/password_hasher.dart';
+import 'package:safwa/core/services/auth_session.dart';
+import 'package:safwa/core/services/backup_service.dart';
+import 'package:safwa/features/settings/data/settings_repository.dart';
 
 class BackupPage extends StatefulWidget {
   const BackupPage({super.key});
@@ -44,13 +44,13 @@ class _BackupPageState extends State<BackupPage> {
     final expectedHash = _settings.read('settings.backup_hash');
     if (salt.isEmpty || expectedHash.isEmpty) {
       _message(
-        'اضبط كلمة مرور النسخ الاحتياطي أولاً من إعداد صفو ← كلمات السر.',
+        'اضبط كلمة مرور النسخ الاحتياطي أولاً من إعداد Safwa ← كلمات السر.',
       );
       return;
     }
     final password = await _askPassword(
       title: 'إنشاء نسخة احتياطية مشفرة',
-      prompt: 'أدخل كلمة المرور التي حفظتها في إعداد صفو.',
+      prompt: 'أدخل كلمة المرور التي حفظتها في إعداد Safwa.',
     );
     if (password == null || !mounted) return;
     setState(() => _busy = true);
@@ -295,7 +295,7 @@ class _BackupPageState extends State<BackupPage> {
         return Card(
           color: AppTheme.surfaceColor,
           child: ListTile(
-            leading: const Icon(Icons.lock_outline, color: Color(0xFF59D67A)),
+            leading: const Icon(Icons.lock_outline, color: Color(0xFF8DCDE2)),
             title: Text(pBasename(file.path), textDirection: TextDirection.ltr),
             subtitle: Text(
               '${modified.toString().substring(0, 16)}  •  ${_formatBytes(file.lengthSync())}',

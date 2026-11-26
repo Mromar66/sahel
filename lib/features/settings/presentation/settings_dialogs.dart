@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_app/core/security/permission_catalog.dart';
-import 'package:inventory_app/features/settings/data/settings_repository.dart';
+import 'package:safwa/core/security/permission_catalog.dart';
+import 'package:safwa/features/settings/data/settings_repository.dart';
 
 class SettingsFieldSpec {
   const SettingsFieldSpec(
@@ -99,6 +99,7 @@ class SettingsUserDraft {
     required this.isAdmin,
     required this.isActive,
     required this.permissions,
+    required this.roleIds,
   });
 
   final String username;
@@ -107,6 +108,118 @@ class SettingsUserDraft {
   final bool isAdmin;
   final bool isActive;
   final Set<String> permissions;
+  final Set<int> roleIds;
+}
+
+class SettingsRoleDraft {
+  const SettingsRoleDraft({
+    required this.name,
+    required this.description,
+    required this.permissions,
+  });
+
+  final String name;
+  final String description;
+  final Set<String> permissions;
+}
+
+Future<SettingsRoleDraft?> showSettingsRoleDialog(
+  BuildContext context, {
+  SettingsRole? role,
+}) async {
+  final name = TextEditingController(text: role?.name ?? '');
+  final description = TextEditingController(text: role?.description ?? '');
+  final permissions = <String>{...?role?.permissions};
+  try {
+    return await showDialog<SettingsRoleDraft>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: Text(
+              role == null ? 'مجموعة صلاحيات جديدة' : 'تعديل مجموعة الصلاحيات',
+            ),
+            content: SizedBox(
+              width: 560,
+              height: 580,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: name,
+                    decoration: const InputDecoration(
+                      labelText: 'اسم المجموعة',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: description,
+                    decoration: const InputDecoration(
+                      labelText: 'وصف المجموعة',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Align(
+                    alignment: Alignment.centerRight,
+                    child: Text('الشاشات المسموح بفتحها'),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        for (final group in appPermissionGroups)
+                          ExpansionTile(
+                            tilePadding: EdgeInsets.zero,
+                            initiallyExpanded: true,
+                            title: Text(group.title),
+                            children: [
+                              for (final permission in group.permissions)
+                                CheckboxListTile(
+                                  dense: true,
+                                  visualDensity: VisualDensity.compact,
+                                  title: Text(permission.label),
+                                  value: permissions.contains(permission.code),
+                                  onChanged: (value) => setDialogState(() {
+                                    if (value == true) {
+                                      permissions.add(permission.code);
+                                    } else {
+                                      permissions.remove(permission.code);
+                                    }
+                                  }),
+                                ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('إلغاء'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(
+                  dialogContext,
+                  SettingsRoleDraft(
+                    name: name.text,
+                    description: description.text,
+                    permissions: permissions,
+                  ),
+                ),
+                child: const Text('حفظ المجموعة'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  } finally {
+    name.dispose();
+    description.dispose();
+  }
 }
 
 Future<SettingsUserDraft?> showSettingsUserDialog(
@@ -116,9 +229,11 @@ Future<SettingsUserDraft?> showSettingsUserDialog(
   final username = TextEditingController(text: user?.username ?? '');
   final displayName = TextEditingController(text: user?.displayName ?? '');
   final password = TextEditingController();
+  final roles = SettingsRepository.instance.roles();
   var isAdmin = user?.isAdmin ?? false;
   var isActive = user?.isActive ?? true;
   final permissions = <String>{...?user?.permissions};
+  final roleIds = <int>{...?user?.roleIds};
   try {
     return await showDialog<SettingsUserDraft>(
       context: context,
@@ -173,6 +288,39 @@ Future<SettingsUserDraft?> showSettingsUserDialog(
                     onChanged: (value) =>
                         setDialogState(() => isActive = value ?? false),
                   ),
+                  if (roles.isNotEmpty) ...[
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'مجموعات الصلاحيات',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    AbsorbPointer(
+                      absorbing: isAdmin,
+                      child: Opacity(
+                        opacity: isAdmin ? .45 : 1,
+                        child: Wrap(
+                          spacing: 5,
+                          runSpacing: 0,
+                          children: [
+                            for (final role in roles)
+                              FilterChip(
+                                label: Text(role.name),
+                                selected: roleIds.contains(role.id),
+                                onSelected: (selected) => setDialogState(() {
+                                  if (selected) {
+                                    roleIds.add(role.id);
+                                  } else {
+                                    roleIds.remove(role.id);
+                                  }
+                                }),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const Divider(height: 12),
                   const Align(
                     alignment: Alignment.centerRight,
@@ -248,6 +396,7 @@ Future<SettingsUserDraft?> showSettingsUserDialog(
                     isAdmin: isAdmin,
                     isActive: isActive,
                     permissions: permissions,
+                    roleIds: roleIds,
                   ),
                 ),
                 child: const Text('حفظ المستخدم'),

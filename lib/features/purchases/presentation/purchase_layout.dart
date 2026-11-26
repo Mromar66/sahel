@@ -13,9 +13,11 @@ extension _PurchaseLayout on _PurchasesPageState {
         textDirection: TextDirection.rtl,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 9),
-            child: SizedBox(width: 322, child: _buildRightColumn()),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 9),
+              child: _buildRightColumn(),
+            ),
           ),
           const SizedBox(width: 6),
           Padding(
@@ -31,7 +33,6 @@ extension _PurchaseLayout on _PurchasesPageState {
               child: _buildInvoicePanel(),
             ),
           ),
-          const Expanded(child: SizedBox()),
         ],
       ),
     );
@@ -638,7 +639,7 @@ extension _PurchaseLayout on _PurchasesPageState {
           height: 37,
           color: hovered ? kHoverYellow : _kYellow,
           alignment: Alignment.center,
-          child: const Icon(Icons.check, size: 26, color: Color(0xFF42B460)),
+          child: const Icon(Icons.check, size: 26, color: Color(0xFF43B5DB)),
         ),
       ),
     );
@@ -1114,245 +1115,84 @@ extension _PurchaseLayout on _PurchasesPageState {
   }
 
   // ---------------------------------------------------------------------------
-  // Right brand strip.
+  // Invoice toolbar.
   // ---------------------------------------------------------------------------
-  Widget _buildRightStrip() {
+  Widget _buildDexefToolbar() {
+    final actions = <(IconData, String, VoidCallback)>[
+      (Icons.add, 'جديد F10', _newInvoice),
+      (Icons.save_outlined, 'حفظ F9', () => _save()),
+      (Icons.done_all, 'حفظ وجديد F12', () => _save(resetAfter: true)),
+      (Icons.account_balance_wallet_outlined, 'سداد F11', _openPayment),
+      (Icons.print_outlined, 'طباعة F4', _print),
+      (Icons.grid_on, 'تصدير Excel', _exportExcel),
+      (Icons.share_outlined, 'مشاركة', _share),
+      (Icons.delete_outline, 'حذف', _deleteInvoice),
+      (Icons.sell_outlined, 'تعديل الأسعار', _editPrices),
+      (Icons.qr_code_2, 'طباعة الباركود', _printBarcode),
+      (Icons.settings_outlined, 'إعدادات', _showSettings),
+      (Icons.keyboard_outlined, 'اختصارات', _showShortcuts),
+      (Icons.close, 'إغلاق', _close),
+    ];
+
     return Container(
-      width: 136,
-      color: _kField,
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-      child: Column(
-        children: [
-          Container(
-            height: 119,
-            width: 120,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-            clipBehavior: Clip.antiAlias,
-            child: Image.asset(
-              'assets/icons/logo.png',
-              width: 120,
-              height: 119,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stack) => Container(
-                color: const Color(0xFF27B04C),
-                child: const Icon(
-                  Icons.shopping_cart,
-                  size: 62,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          HoverBuilder(
-            builder: (context, hovered) => GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _toast('أنت الآن في شاشة الشراء.'),
-              child: Container(
-                width: 120,
-                height: 60,
-                color: hovered ? kHoverYellow : _kRed,
-                alignment: Alignment.center,
-                child: Text(
-                  'شراء',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: hovered ? _kInk : Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            width: 120,
-            height: 29,
-            color: _kSoft,
-            child: Row(
-              children: [
-                Expanded(
-                  child: _stripIcon(
-                    Icons.keyboard_double_arrow_right,
-                    () => _tbl.nudgeAllWidths(10),
-                  ),
-                ),
-                Container(width: 2, color: Colors.white),
-                Expanded(
-                  child: _stripIcon(
-                    Icons.keyboard_double_arrow_left,
-                    () => _tbl.nudgeAllWidths(-10),
-                  ),
-                ),
-                Container(width: 2, color: Colors.white),
-                Expanded(child: _stripIconText('K', _showShortcuts)),
-                Container(width: 2, color: Colors.white),
-                Expanded(
-                  child: _stripIcon(Icons.search, () {
-                    _searchFocus.requestFocus();
-                  }),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          HoverBuilder(
-            builder: (context, hovered) => GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _save(resetAfter: true),
-              child: Container(
-                width: 120,
-                height: 115,
-                color: hovered ? const Color(0xFFFFD65C) : _kYellow,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    SizedBox(
-                      height: 48,
-                      child: OverflowBox(
-                        maxHeight: 91,
-                        child: Icon(
-                          Icons.check,
-                          size: 91,
-                          color: Color(0xFF2F76E8),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 14),
-                    Text(
-                      'حفظ | جديد',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        color: _kInk,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'F12',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        color: _kInk,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: HoverBuilder(
-              builder: (context, hovered) => GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _openPayment,
-                child: Container(
-                  width: 120,
-                  color: hovered ? kHoverYellow : _kSoft,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
-                      const Icon(
-                        Icons.account_balance_wallet,
-                        size: 44,
-                        color: Color(0xFF111111),
-                      ),
-                      const Text(
-                        'سداد F11',
-                        style: TextStyle(fontSize: 11.5, color: _kInk),
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: const Alignment(0.35, 0),
-                        child: Container(
-                          width: 33,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: const Color(0xFF2B2B2B),
-                              width: 2,
-                            ),
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Container(
-                              width: 9,
-                              height: 9,
-                              margin: const EdgeInsets.only(left: 2),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2B2B2B),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Container(height: 1, color: _kField),
-        ],
+      height: 52,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF2F5F8),
+        border: Border(bottom: BorderSide(color: Color(0xFFC9D2DD))),
       ),
-    );
-  }
-
-  Widget _stripIcon(IconData icon, VoidCallback onTap) {
-    return HoverBuilder(
-      builder: (context, hovered) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          color: hovered ? kHoverYellow : Colors.transparent,
-          child: Icon(icon, size: 17, color: const Color(0xFF222222)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          textDirection: TextDirection.rtl,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < actions.length; i++) ...[
+              if (i == 4 || i == 7 || i == 10)
+                Container(
+                  width: 1,
+                  height: 34,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  color: const Color(0xFFD1D9E2),
+                ),
+              _dexefToolButton(
+                icon: actions[i].$1,
+                label: actions[i].$2,
+                onTap: actions[i].$3,
+              ),
+            ],
+          ],
         ),
       ),
     );
   }
 
-  Widget _stripIconText(String text, VoidCallback onTap) {
+  Widget _dexefToolButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return HoverBuilder(
-      builder: (context, hovered) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      builder: (context, hovered) => InkWell(
         onTap: onTap,
         child: Container(
-          color: hovered ? kHoverYellow : Colors.transparent,
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF222222),
-            ),
+          width: 76,
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+          color: hovered ? const Color(0xFFE0EDFA) : Colors.transparent,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20, color: const Color(0xFF2676C8)),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 9.5, color: Color(0xFF243140)),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Footer.
-  // ---------------------------------------------------------------------------
-  Widget _buildFooter() {
-    return ShopFooterBar(
-      actions: ShopFooterActions(
-        onSave: () => _save(),
-        onNew: _newInvoice,
-        onPrint: _print,
-        onExport: _exportExcel,
-        onShare: _share,
-        onDeleteDocument: _deleteInvoice,
-        onEditPrices: _editPrices,
-        onPrintBarcode: _printBarcode,
-        onSettings: _showSettings,
-        onClose: _close,
-        onShortcuts: _showShortcuts,
-        onClear: _deleteInvoice,
       ),
     );
   }

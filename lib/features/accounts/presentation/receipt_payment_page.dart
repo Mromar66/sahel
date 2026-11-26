@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/document_custom_fields.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/features/accounts/data/accounts_repo.dart';
-import 'package:inventory_app/features/accounts/domain/account_record.dart';
-import 'package:inventory_app/features/accounts/presentation/accounts_ui.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/document_custom_fields.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/features/accounts/data/accounts_repo.dart';
+import 'package:safwa/features/accounts/domain/account_record.dart';
+import 'package:safwa/features/accounts/presentation/accounts_ui.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
 
 /// قبض / صرف — replica of the reference receipt and payment screens: the
 /// right brand strip, the right-aligned voucher form, the عام / الفواتير
@@ -63,7 +63,7 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
   bool get _isReceipt => widget.isReceipt;
   String get _title => _isReceipt ? 'قبض' : 'صرف';
   Color get _accent =>
-      _isReceipt ? const Color(0xFF2FBF55) : const Color(0xFFE4685A);
+      _isReceipt ? const Color(0xFF43B5DB) : const Color(0xFFE4685A);
 
   @override
   void initState() {
@@ -192,6 +192,7 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
   /// home page or the accounts list). Falls back to the accounts list when
   /// there is nothing underneath.
   void _close() {
+    removeCurrentAppTab(context);
     if (context.canPop()) {
       context.pop();
     } else {
@@ -503,7 +504,6 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
               width: 118,
               height: 30,
               child: Container(
-                color: Colors.white,
                 padding: const EdgeInsets.only(bottom: 2),
                 decoration: const BoxDecoration(
                   border: Border(
@@ -968,7 +968,7 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
       'الرصيد التالي',
     ];
     const double tableWidth = 612;
-    const Color green = Color(0xFF2FD25A);
+    const Color green = Color(0xFF8DCDE2);
     const Color line = Color(0xFFE2E2E2);
 
     final header = SizedBox(
@@ -987,7 +987,7 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
                 maxLines: 1,
                 style: const TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF12241A),
+                  color: Color(0xFF248EB2),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1179,12 +1179,12 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
   // ---------------------------------------------------------------------------
   Widget _buildBrandStrip() {
     return Container(
-      color: const Color(0xFF2FBD55),
+      color: const Color(0xFF43B5DB),
       child: Column(
         children: [
           const SizedBox(height: 14),
           Image.asset(
-            'assets/icons/logo.png',
+            'assets/icons/safwa_logo.png',
             width: 78,
             height: 78,
             fit: BoxFit.contain,
@@ -1192,7 +1192,7 @@ class _ReceiptPaymentPageState extends State<ReceiptPaymentPage> {
                 const Icon(Icons.shopping_cart, size: 62, color: Colors.white),
           ),
           const Text(
-            'صفو',
+            'Safwa',
             style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.w700,

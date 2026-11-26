@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:inventory_app/features/accounts/data/account_repository.dart';
-import 'package:inventory_app/features/accounts/domain/account_entity.dart';
-import 'package:inventory_app/core/utils/currency_utils.dart';
+import 'package:safwa/features/accounts/data/account_repository.dart';
+import 'package:safwa/features/accounts/domain/account_entity.dart';
+import 'package:safwa/core/utils/currency_utils.dart';
 
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
   return AccountRepository();

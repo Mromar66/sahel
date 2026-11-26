@@ -1,25 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/core/utils/constants.dart';
-import 'package:inventory_app/core/services/auth_session.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/core/services/auth_session.dart';
+import 'package:safwa/core/utils/constants.dart';
 
-/// Home dashboard built to match the reference design pixel-for-pixel.
-///
-/// Layout constants are taken from the reference screenshot (1279 px wide):
-/// an 8-column grid of 120 px tiles with 6 px gaps, right-aligned with an
-/// 8 px margin, for a total content width of 1002 px.
-const double _kTileSize = 120;
-const double _kTileGap = 6;
-const double _kContentWidth = 1002;
-const double _kGridOffset = 126; // one empty column + gap
-const double _kQuickWidth = 498; // four columns + three gaps
-const double _kReportWidth = 246; // two columns + one gap
-
-const Color _kHoverYellow = Color(0xFFFBBC04);
-const Color _kGreenTile = Color(0xFF34A853);
-const Color _kReportsTile = Color(0xFF174EA6);
-const Color _kQuickTile = Color(0xFF4285F4);
+const double _tileGap = 8;
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -29,515 +15,328 @@ class HomePage extends StatelessWidget {
     return AppShell(
       activeTab: AppTab.home,
       child: Stack(
-        fit: StackFit.expand,
         children: [
-          // Textured dark background (generated from the reference
-          // texture with the exact vertical shading).
-          Image.asset(
-            'assets/images/page_background.png',
-            fit: BoxFit.fill,
-            filterQuality: FilterQuality.none,
-            errorBuilder: (_, error, stackTrace) =>
-                const ColoredBox(color: Color(0xFF1E1E1E)),
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 8, right: 8, bottom: 24),
-            child: Align(
-              alignment: Alignment.topRight,
-              child: SizedBox(
-                width: _kContentWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeroRow(context),
-                    const SizedBox(height: 22),
-                    _buildSectionTitles(),
-                    const SizedBox(height: 7),
-                    _buildQuickAndReportsRow(context),
-                    const SizedBox(height: 12),
-                    _buildOperationsTitle(),
-                    const SizedBox(height: 7),
-                    _buildOperationsRowOne(context),
-                    const SizedBox(height: 7),
-                    _buildOperationsRowTwo(context),
-                  ],
-                ),
-              ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/home_wood_background.png',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) =>
+                  const ColoredBox(color: Color(0xFFF5F4F1)),
             ),
           ),
+          const Positioned.fill(child: _HomeMosaic()),
         ],
       ),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // Hero row: five green tiles + brand text + logo.
-  // ---------------------------------------------------------------------------
-  Widget _buildHeroRow(BuildContext context) {
-    final tiles = <_TileSpec>[
-      _TileSpec(
-        'تقارير',
-        'assets/icons/tile_hero_reports.png',
-        _kGreenTile,
-        AppRoutes.reports,
-      ),
-      _TileSpec(
-        'الفواتير',
-        'assets/icons/tile_hero_invoices.png',
-        _kGreenTile,
-        AppRoutes.invoices,
-      ),
-      _TileSpec(
-        'الخزينة',
-        'assets/icons/tile_hero_treasury.png',
-        _kGreenTile,
-        AppRoutes.treasury,
-      ),
-      _TileSpec(
-        'الحسابات',
-        'assets/icons/tile_hero_accounts.png',
-        _kGreenTile,
-        AppRoutes.accounts,
-      ),
-      _TileSpec(
-        'البضاعة',
-        'assets/icons/tile_hero_goods.png',
-        _kGreenTile,
-        AppRoutes.products,
-      ),
-    ];
-
-    final children = <Widget>[];
-    for (var i = 0; i < tiles.length; i++) {
-      if (i > 0) children.add(const SizedBox(width: _kTileGap));
-      children.add(_DashboardTile(spec: tiles[i], width: _kTileSize));
-    }
-    children.add(const _BrandBlock());
-    children.add(const _LogoBlock());
-
-    return SizedBox(
-      height: _kTileSize,
-      child: Row(textDirection: TextDirection.ltr, children: children),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Section titles row (reports on the second column group, quick actions on
-  // the rightmost four columns).
-  // ---------------------------------------------------------------------------
-  Widget _buildSectionTitles() {
-    return SizedBox(
-      height: 19,
-      child: Row(
-        textDirection: TextDirection.ltr,
-        children: [
-          const SizedBox(width: _kGridOffset),
-          SizedBox(
-            width: _kReportWidth,
-            child: _sectionTitle('تقارير', rightPadding: 1),
-          ),
-          const SizedBox(width: 132),
-          SizedBox(
-            width: _kQuickWidth,
-            child: _sectionTitle('ابدأ بمشاهدة الجولة السريعة'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String text, {double rightPadding = 4}) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Padding(
-        padding: EdgeInsets.only(right: rightPadding),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFFEDEDED),
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            height: 1.2,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Reports tiles + quick actions tiles.
-  // ---------------------------------------------------------------------------
-  Widget _buildQuickAndReportsRow(BuildContext context) {
-    final reports = <_TileSpec>[
-      _TileSpec(
-        'تحليل المبيعات',
-        'assets/icons/tile_report_sales.png',
-        _kReportsTile,
-        AppRoutes.salesAnalysis,
-      ),
-      _TileSpec(
-        'الحركة اليومية',
-        'assets/icons/tile_report_daily.png',
-        _kReportsTile,
-        AppRoutes.dailyMovement,
-      ),
-    ];
-
-    final quick = <_TileSpec>[
-      _TileSpec(
-        'إدخال الحسابات',
-        'assets/icons/tile_quick_accounts.png',
-        _kQuickTile,
-        AppRoutes.accounts,
-      ),
-      _TileSpec(
-        'إدخال الأصناف',
-        'assets/icons/tile_quick_products.png',
-        _kQuickTile,
-        AppRoutes.products,
-      ),
-      _TileSpec(
-        'إعداد صفو',
-        'assets/icons/tile_quick_settings.png',
-        _kQuickTile,
-        AppRoutes.settings,
-      ),
-      _TileSpec(
-        'أهلا بكم',
-        'assets/icons/tile_quick_welcome.png',
-        _kQuickTile,
-        '',
-      ),
-    ];
-
-    final children = <Widget>[
-      const SizedBox(width: _kGridOffset),
-      _DashboardTile(spec: reports[0], width: _kTileSize),
-      const SizedBox(width: _kTileGap),
-      _DashboardTile(spec: reports[1], width: _kTileSize),
-      const SizedBox(width: 132),
-    ];
-
-    for (var i = 0; i < quick.length; i++) {
-      if (i > 0) children.add(const SizedBox(width: _kTileGap));
-      children.add(_DashboardTile(spec: quick[i], width: _kTileSize));
-    }
-
-    return SizedBox(
-      height: _kTileSize,
-      child: Row(textDirection: TextDirection.ltr, children: children),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Operations.
-  // ---------------------------------------------------------------------------
-  Widget _buildOperationsTitle() {
-    return SizedBox(
-      height: 19,
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 2),
-          child: Text(
-            'حدد نوع المستند',
-            style: const TextStyle(
-              color: Color(0xFFEDEDED),
-              fontSize: 13.2,
-              fontWeight: FontWeight.w600,
-              height: 1.2,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOperationsRowOne(BuildContext context) {
-    final specs = <_TileSpec>[
-      _TileSpec(
-        'جرد مخزن',
-        'assets/icons/tile_op_stocktake.png',
-        const Color(0xFF188038),
-        AppRoutes.stocktaking,
-      ),
-      _TileSpec(
-        'صرف',
-        'assets/icons/tile_op_expense.png',
-        const Color(0xFFEA4335),
-        '/accounts/payment',
-      ),
-      _TileSpec(
-        'شراء',
-        'assets/icons/tile_op_buy.png',
-        const Color(0xFFEA4335),
-        AppRoutes.purchases,
-      ),
-      _TileSpec(
-        'بيع',
-        'assets/icons/tile_op_sell.png',
-        const Color(0xFF34A853),
-        AppRoutes.sales,
-      ),
-    ];
-    final widths = <double>[
-      _kReportWidth,
-      _kTileSize,
-      _kReportWidth,
-      _kReportWidth,
-    ];
-
-    final children = <Widget>[const SizedBox(width: _kGridOffset)];
-    for (var i = 0; i < specs.length; i++) {
-      if (i > 0) children.add(const SizedBox(width: _kTileGap));
-      children.add(_DashboardTile(spec: specs[i], width: widths[i]));
-    }
-
-    return SizedBox(
-      height: _kTileSize,
-      child: Row(textDirection: TextDirection.ltr, children: children),
-    );
-  }
-
-  Widget _buildOperationsRowTwo(BuildContext context) {
-    final specs = <_TileSpec?>[
-      _TileSpec(
-        'تسوية مخزن',
-        'assets/icons/tile_op_adjust.png',
-        const Color(0xFF34A853),
-        AppRoutes.adjustment,
-      ),
-      _TileSpec(
-        'تحويل لمخزن',
-        'assets/icons/tile_op_transfer.png',
-        const Color(0xFF188038),
-        AppRoutes.transfer,
-      ),
-      _TileSpec(
-        'قبض',
-        'assets/icons/tile_op_receive.png',
-        const Color(0xFF34A853),
-        '/accounts/receipt',
-      ),
-      null, // intentional empty column, exactly as in the reference
-      _TileSpec(
-        'مرتجع شراء',
-        'assets/icons/tile_op_return_buy.png',
-        const Color(0xFFB3261E),
-        AppRoutes.purchaseReturn,
-      ),
-      _TileSpec(
-        'عرض أسعار',
-        'assets/icons/tile_op_quote.png',
-        const Color(0xFF4285F4),
-        AppRoutes.quotation,
-      ),
-      _TileSpec(
-        'مرتجع بيع',
-        'assets/icons/tile_op_return_sell.png',
-        const Color(0xFF34A853),
-        AppRoutes.salesReturn,
-      ),
-    ];
-
-    final children = <Widget>[const SizedBox(width: _kGridOffset)];
-    for (var i = 0; i < specs.length; i++) {
-      if (i > 0) children.add(const SizedBox(width: _kTileGap));
-      final spec = specs[i];
-      if (spec == null) {
-        children.add(const SizedBox(width: _kTileSize, height: _kTileSize));
-      } else {
-        children.add(_DashboardTile(spec: spec, width: _kTileSize));
-      }
-    }
-
-    return SizedBox(
-      height: _kTileSize,
-      child: Row(textDirection: TextDirection.ltr, children: children),
-    );
-  }
 }
 
-// -----------------------------------------------------------------------------
-// Brand text + logo.
-// -----------------------------------------------------------------------------
-class _BrandBlock extends StatelessWidget {
-  const _BrandBlock();
+class _HomeMosaic extends StatelessWidget {
+  const _HomeMosaic();
+
+  static const List<_HomeTileData> _tiles = [
+    _HomeTileData(
+      label: 'التقارير',
+      icon: Icons.insert_chart_outlined,
+      color: Color(0xFF424B5D),
+      route: AppRoutes.reports,
+      column: 0,
+      row: 0,
+      columnSpan: 2,
+      rowSpan: 2,
+    ),
+    _HomeTileData(
+      label: 'فاتورة مشتريات',
+      icon: Icons.receipt_long_outlined,
+      color: Color(0xFF087DD2),
+      route: AppRoutes.purchases,
+      reviewRoute: '/invoices?type=purchase',
+      column: 2,
+      row: 0,
+      columnSpan: 2,
+    ),
+    _HomeTileData(
+      label: 'فاتورة مبيعات',
+      icon: Icons.receipt_outlined,
+      color: Color(0xFFD25532),
+      route: AppRoutes.sales,
+      reviewRoute: '/invoices?type=sale',
+      column: 4,
+      row: 0,
+      columnSpan: 2,
+    ),
+    _HomeTileData(
+      label: 'إضافة صنف',
+      icon: Icons.layers_outlined,
+      color: Color(0xFF43B5DB),
+      route: AppRoutes.products,
+      reviewRoute: AppRoutes.products,
+      addRoute: '/products?new=1',
+      column: 6,
+      row: 0,
+      columnSpan: 2,
+    ),
+    _HomeTileData(
+      label: 'مرتجع مشتريات',
+      icon: Icons.sync_outlined,
+      color: Color(0xFF6B6B6B),
+      route: AppRoutes.purchaseReturn,
+      reviewRoute: '/invoices?type=purchaseReturn',
+      column: 2,
+      row: 1,
+    ),
+    _HomeTileData(
+      label: 'دفع نقدية',
+      icon: Icons.payments_outlined,
+      color: Color(0xFF5D3CB5),
+      route: '/accounts/payment',
+      reviewRoute: '/invoices?type=payment',
+      column: 3,
+      row: 1,
+    ),
+    _HomeTileData(
+      label: 'مرتجع مبيعات',
+      icon: Icons.currency_exchange_outlined,
+      color: Color(0xFF8DCDE2),
+      route: AppRoutes.salesReturn,
+      reviewRoute: '/invoices?type=salesReturn',
+      column: 4,
+      row: 1,
+    ),
+    _HomeTileData(
+      label: 'استلام نقدية',
+      icon: Icons.account_balance_wallet_outlined,
+      color: Color(0xFF354DB8),
+      route: '/accounts/receipt',
+      reviewRoute: '/invoices?type=receipt',
+      column: 5,
+      row: 1,
+    ),
+    _HomeTileData(
+      label: 'إضافة مورد',
+      icon: Icons.groups_2_outlined,
+      color: Color(0xFF424B5D),
+      route: AppRoutes.accounts,
+      reviewRoute: '/accounts?kind=supplier',
+      addRoute: '/accounts?kind=supplier&new=1',
+      column: 6,
+      row: 1,
+    ),
+    _HomeTileData(
+      label: 'إضافة عميل',
+      icon: Icons.people_alt_outlined,
+      color: Color(0xFF5D3CB5),
+      route: AppRoutes.accounts,
+      reviewRoute: '/accounts?kind=customer',
+      addRoute: '/accounts?kind=customer&new=1',
+      column: 7,
+      row: 1,
+    ),
+    _HomeTileData(
+      label: 'المصروفات',
+      icon: Icons.money_outlined,
+      color: Color(0xFF4D4D4D),
+      route: AppRoutes.treasury,
+      reviewRoute: AppRoutes.treasury,
+      addRoute: '/treasury-movement?new=expense',
+      column: 3,
+      row: 2,
+    ),
+    _HomeTileData(
+      label: 'الحركة اليومية',
+      icon: Icons.trending_up,
+      color: Color(0xFF2389E8),
+      route: AppRoutes.dailyMovement,
+      reviewRoute: AppRoutes.dailyMovement,
+      addRoute: '/treasury-movement?new=receive',
+      column: 5,
+      row: 2,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 258,
-      height: _kTileSize,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4, right: 9, left: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'صفو لإدارة الأعمال',
-              textAlign: TextAlign.right,
-              maxLines: 1,
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Times New Roman',
-                fontSize: 34.5,
-                fontWeight: FontWeight.w700,
-                height: 1,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = math.max(0.0, constraints.maxWidth - 64);
+        final tileSize = math.min(
+          120.0,
+          math.min(
+            (maxWidth - 72) / 8,
+            (constraints.maxHeight - 40 - _tileGap * 2) / 3,
+          ),
+        );
+        if (!tileSize.isFinite || tileSize <= 0) {
+          return const SizedBox.shrink();
+        }
+        final gridWidth = tileSize * 8 + 72;
+        final gridHeight = tileSize * 3 + _tileGap * 2;
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 32),
+          child: Center(
+            child: SizedBox(
+              width: gridWidth,
+              height: gridHeight,
+              child: Stack(
+                textDirection: TextDirection.ltr,
+                children: [
+                  for (final tile in _tiles)
+                    if (AuthSession.instance.canOpenLocation(tile.route))
+                      Positioned(
+                        left: _columnPosition(tile.column, tileSize),
+                        top: tile.row * (tileSize + _tileGap),
+                        width:
+                            tile.columnSpan * tileSize +
+                            (tile.columnSpan - 1) * _tileGap,
+                        height:
+                            tile.rowSpan * tileSize +
+                            (tile.rowSpan - 1) * _tileGap,
+                        child: _HomeTile(
+                          data: tile,
+                          large: tile.columnSpan > 1 && tile.rowSpan > 1,
+                        ),
+                      ),
+                ],
               ),
             ),
-            const SizedBox(height: 15),
-            const SizedBox(
-              width: double.infinity,
-              child: Text(
-                'إدارة المبيعات والمخازن\nوالحسابات بسهولة',
-                textAlign: TextAlign.right,
-                maxLines: 2,
-                style: TextStyle(
-                  color: Color(0xFFD8D8D8),
-                  fontFamily: 'Times New Roman',
-                  fontSize: 15.5,
-                  height: 0.95,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  double _columnPosition(int column, double tileSize) {
+    const List<double> extraGaps = [0, 8, 24, 32, 40, 48, 64, 72];
+    return column * tileSize + extraGaps[column];
   }
 }
 
-class _LogoBlock extends StatelessWidget {
-  const _LogoBlock();
+class _HomeTileData {
+  const _HomeTileData({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.route,
+    this.reviewRoute,
+    this.addRoute,
+    required this.column,
+    required this.row,
+    this.columnSpan = 1,
+    this.rowSpan = 1,
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: _kTileSize,
-      height: _kTileSize,
-      child: Image.asset(
-        'assets/icons/logo.png',
-        fit: BoxFit.fill,
-        filterQuality: FilterQuality.medium,
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Dashboard tile.
-// -----------------------------------------------------------------------------
-class _DashboardTile extends StatelessWidget {
-  const _DashboardTile({required this.spec, required this.width});
-
-  final _TileSpec spec;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    if (spec.route.isNotEmpty &&
-        !AuthSession.instance.canOpenLocation(spec.route)) {
-      return SizedBox(width: width, height: _kTileSize);
-    }
-    return SizedBox(
-      width: width,
-      height: _kTileSize,
-      child: _HoverTile(
-        color: spec.color,
-        onTap: () {
-          if (spec.route.isEmpty) {
-            _showMessage(context, 'أهلاً بكم في صفو لإدارة الأعمال.');
-          } else if (spec.route == '/accounts/receipt' ||
-              spec.route == '/accounts/payment') {
-            // Keep the previous page underneath so «إغلاق» returns to it.
-            context.push(spec.route);
-          } else {
-            context.go(spec.route);
-          }
-        },
-        child: Column(
-          children: [
-            const SizedBox(height: 18),
-            SizedBox(
-              height: 81,
-              width: double.infinity,
-              child: Center(
-                child: Image.asset(
-                  spec.iconAsset,
-                  width: 120,
-                  height: 81,
-                  fit: BoxFit.fill,
-                  filterQuality: FilterQuality.none,
-                  errorBuilder: (_, error, stackTrace) => const Icon(
-                    Icons.image_not_supported_outlined,
-                    color: Colors.white,
-                    size: 42,
-                  ),
-                ),
-              ),
-            ),
-            Text(
-              spec.label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.visible,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                height: 1.15,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Shared hover tile.
-// -----------------------------------------------------------------------------
-class _HoverTile extends StatefulWidget {
-  const _HoverTile({required this.color, required this.child, this.onTap});
-
+  final String label;
+  final IconData icon;
   final Color color;
-  final Widget child;
-  final VoidCallback? onTap;
-
-  @override
-  State<_HoverTile> createState() => _HoverTileState();
+  final String route;
+  final String? reviewRoute;
+  final String? addRoute;
+  final int column;
+  final int row;
+  final int columnSpan;
+  final int rowSpan;
 }
 
-class _HoverTileState extends State<_HoverTile> {
+class _HomeTile extends StatefulWidget {
+  const _HomeTile({required this.data, this.large = false});
+
+  final _HomeTileData data;
+  final bool large;
+
+  @override
+  State<_HomeTile> createState() => _HomeTileState();
+}
+
+class _HomeTileState extends State<_HomeTile> {
   bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
+    final data = widget.data;
     return MouseRegion(
-      cursor: widget.onTap != null
-          ? SystemMouseCursors.click
-          : MouseCursor.defer,
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: Material(
-        type: MaterialType.transparency,
+        color: data.color,
         child: InkWell(
-          onTap: widget.onTap,
-          mouseCursor: widget.onTap != null
-              ? SystemMouseCursors.click
-              : MouseCursor.defer,
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            decoration: BoxDecoration(
-              color: _hovered ? _kHoverYellow : widget.color,
-              borderRadius: const BorderRadius.all(Radius.circular(2)),
-            ),
-            child: widget.child,
+          onTap: () => _goToHomeAction(context, data.route),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Opacity(
+                      opacity: _hovered && !widget.large ? 0 : 1,
+                      child: Icon(
+                        data.icon,
+                        color: Colors.white,
+                        size: widget.large ? 48 : 36,
+                      ),
+                    ),
+                    SizedBox(height: widget.large ? 9 : 7),
+                    Text(
+                      data.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: widget.large ? 14 : 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!widget.large)
+                Positioned(
+                  top: 3,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    ignoring: !_hovered,
+                    child: Opacity(
+                      opacity: _hovered ? 1 : 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _HomeTileAction(
+                            label: 'مراجعة',
+                            icon: Icons.format_list_bulleted,
+                            accentColor: data.color,
+                            onTap: data.reviewRoute == null
+                                ? null
+                                : () => _goToHomeAction(
+                                    context,
+                                    data.reviewRoute!,
+                                  ),
+                          ),
+                          const SizedBox(width: 8),
+                          _HomeTileAction(
+                            label: 'إضافة',
+                            icon: Icons.note_add_outlined,
+                            accentColor: data.color,
+                            onTap: () => _goToHomeAction(
+                              context,
+                              data.addRoute ?? data.route,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -545,24 +344,76 @@ class _HoverTileState extends State<_HoverTile> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Data holders + helpers.
-// -----------------------------------------------------------------------------
-class _TileSpec {
-  const _TileSpec(this.label, this.iconAsset, this.color, this.route);
+class _HomeTileAction extends StatefulWidget {
+  const _HomeTileAction({
+    required this.label,
+    required this.icon,
+    required this.accentColor,
+    required this.onTap,
+  });
 
   final String label;
-  final String iconAsset;
-  final Color color;
-  final String route;
+  final IconData icon;
+  final Color accentColor;
+  final VoidCallback? onTap;
+
+  @override
+  State<_HomeTileAction> createState() => _HomeTileActionState();
 }
 
-void _showMessage(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message, style: const TextStyle(fontSize: 13)),
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 2),
-    ),
-  );
+class _HomeTileActionState extends State<_HomeTileAction> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      child: MouseRegion(
+        cursor: widget.onTap == null
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: SizedBox(
+          width: 45,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 130),
+                width: _hovered ? 42 : 40,
+                height: _hovered ? 42 : 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _hovered ? Colors.white : Colors.transparent,
+                  border: Border.all(color: Colors.white, width: 1.8),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  widget.icon,
+                  color: _hovered ? widget.accentColor : Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                widget.label,
+                maxLines: 1,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void _goToHomeAction(BuildContext context, String route) {
+  openAppWindowTab(context, route);
 }

@@ -1,5 +1,5 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/security/password_hasher.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/security/password_hasher.dart';
 
 class SettingsUser {
   const SettingsUser({
@@ -10,6 +10,7 @@ class SettingsUser {
     required this.isActive,
     required this.sortOrder,
     required this.permissions,
+    required this.roleIds,
   });
 
   final int id;
@@ -19,6 +20,25 @@ class SettingsUser {
   final bool isActive;
   final int sortOrder;
   final Set<String> permissions;
+  final Set<int> roleIds;
+}
+
+class SettingsRole {
+  const SettingsRole({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.sortOrder,
+    required this.permissions,
+    required this.userCount,
+  });
+
+  final int id;
+  final String name;
+  final String description;
+  final int sortOrder;
+  final Set<String> permissions;
+  final int userCount;
 }
 
 class SettingsRepository {
@@ -32,6 +52,25 @@ class SettingsRepository {
       key,
     ]);
     return rows.isEmpty ? fallback : '${rows.first['value'] ?? fallback}';
+  }
+
+  String readUserPreference(int userId, String key, [String fallback = '']) {
+    final rows = _database.query(
+      'SELECT preference_value FROM program_user_preferences WHERE user_id=? AND preference_key=?',
+      [userId, key],
+    );
+    return rows.isEmpty
+        ? fallback
+        : '${rows.first['preference_value'] ?? fallback}';
+  }
+
+  Future<void> saveUserPreference(int userId, String key, String value) async {
+    _database.execute(
+      'INSERT INTO program_user_preferences(user_id,preference_key,preference_value,updated_at) '
+      'VALUES(?,?,?,?) ON CONFLICT(user_id,preference_key) DO UPDATE SET '
+      'preference_value=excluded.preference_value,updated_at=excluded.updated_at',
+      [userId, key, value, DateTime.now().toIso8601String()],
+    );
   }
 
   Map<String, String> readAll(Iterable<String> keys) => {
@@ -405,9 +444,101 @@ class SettingsRepository {
               )
               .map((p) => '${p['permission_code']}')
               .toSet(),
+          roleIds: _database
+              .query('SELECT role_id FROM program_user_roles WHERE user_id=?', [
+                row['id'],
+              ])
+              .map((r) => (r['role_id'] as num).toInt())
+              .toSet(),
         ),
     ];
   }
+
+  List<SettingsRole> roles() {
+    final rows = _database.query(
+      'SELECT id,name,description,sort_order FROM program_roles ORDER BY sort_order,id',
+    );
+    return [
+      for (final row in rows)
+        SettingsRole(
+          id: (row['id'] as num).toInt(),
+          name: '${row['name'] ?? ''}',
+          description: '${row['description'] ?? ''}',
+          sortOrder: (row['sort_order'] as num?)?.toInt() ?? 0,
+          permissions: _database
+              .query(
+                'SELECT permission_code FROM program_role_permissions WHERE role_id=?',
+                [row['id']],
+              )
+              .map((p) => '${p['permission_code']}')
+              .toSet(),
+          userCount:
+              (_database.query(
+                        'SELECT COUNT(*) AS count FROM program_user_roles WHERE role_id=?',
+                        [row['id']],
+                      ).first['count']
+                      as num?)
+                  ?.toInt() ??
+              0,
+        ),
+    ];
+  }
+
+  Future<void> saveRole({
+    int? id,
+    required String name,
+    required String description,
+    required Set<String> permissions,
+  }) async {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) {
+      throw const SettingsValidationException('اكتب اسم مجموعة الصلاحيات.');
+    }
+    final duplicates = _database.query(
+      'SELECT id FROM program_roles WHERE name=? COLLATE NOCASE AND id<>COALESCE(?, -1)',
+      [cleanName, id],
+    );
+    if (duplicates.isNotEmpty) {
+      throw const SettingsValidationException(
+        'اسم مجموعة الصلاحيات مستخدم بالفعل.',
+      );
+    }
+    await _database.transaction(() async {
+      final now = DateTime.now().toIso8601String();
+      var roleId = id;
+      if (id == null) {
+        final order = _database
+            .query(
+              'SELECT COALESCE(MAX(sort_order),-1)+1 AS n FROM program_roles',
+            )
+            .first['n'];
+        roleId = _database.insert(
+          'INSERT INTO program_roles(name,description,sort_order,created_at,updated_at) VALUES(?,?,?,?,?)',
+          [cleanName, description.trim(), order, now, now],
+        );
+      } else {
+        _database.execute(
+          'UPDATE program_roles SET name=?,description=?,updated_at=? WHERE id=?',
+          [cleanName, description.trim(), now, id],
+        );
+      }
+      _database.execute(
+        'DELETE FROM program_role_permissions WHERE role_id=?',
+        [roleId],
+      );
+      for (final code in permissions) {
+        _database.execute(
+          'INSERT INTO program_role_permissions(role_id,permission_code) VALUES(?,?)',
+          [roleId, code],
+        );
+      }
+    });
+  }
+
+  Future<void> deleteRole(int id) => _database.transaction(() async {
+    _database.execute('DELETE FROM program_user_roles WHERE role_id=?', [id]);
+    _database.execute('DELETE FROM program_roles WHERE id=?', [id]);
+  });
 
   Future<void> saveUser({
     int? id,
@@ -417,6 +548,7 @@ class SettingsRepository {
     required bool isAdmin,
     required bool isActive,
     required Set<String> permissions,
+    Set<int> roleIds = const {},
   }) async {
     final cleanUsername = username.trim();
     final cleanDisplay = displayName.trim();
@@ -526,6 +658,12 @@ class SettingsRepository {
           _database.execute(
             'INSERT INTO program_user_permissions(user_id,permission_code) VALUES(?,?)',
             [userId, code],
+          );
+        }
+        for (final roleId in roleIds) {
+          _database.execute(
+            'INSERT INTO program_user_roles(user_id,role_id) VALUES(?,?)',
+            [userId, roleId],
           );
         }
       }

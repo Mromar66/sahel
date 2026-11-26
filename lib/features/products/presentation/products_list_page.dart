@@ -3,20 +3,22 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/core/utils/constants.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/features/products/data/product_repository.dart';
-import 'package:inventory_app/features/products/presentation/confirm_delete_dialog.dart';
-import 'package:inventory_app/features/products/presentation/export_dialog.dart';
-import 'package:inventory_app/features/products/presentation/product_form_page.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/core/utils/constants.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/features/products/data/product_repository.dart';
+import 'package:safwa/features/products/presentation/confirm_delete_dialog.dart';
+import 'package:safwa/features/products/presentation/export_dialog.dart';
+import 'package:safwa/features/products/presentation/product_form_page.dart';
 
 /// Products page (البضاعة) — pixel copy of the reference program:
 /// a white page header with the green Kufi title, action buttons and search
 /// fields; a left sidebar of command buttons; and the 10-column products grid
 /// with green rows, footer totals, scrollbar and the warehouse mini-table.
 class ProductsListPage extends StatefulWidget {
-  const ProductsListPage({super.key});
+  const ProductsListPage({super.key, this.openNewOnStart = false});
+
+  final bool openNewOnStart;
 
   @override
   State<ProductsListPage> createState() => _ProductsListPageState();
@@ -44,6 +46,11 @@ class _ProductsListPageState extends State<ProductsListPage> {
   void initState() {
     super.initState();
     _reload();
+    if (widget.openNewOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openNew();
+      });
+    }
   }
 
   @override
@@ -206,7 +213,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
                   child: Text(
                     'البضاعة',
                     style: TextStyle(
-                      color: Color(0xFF25B74C),
+                      color: Color(0xFF43B5DB),
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -224,8 +231,13 @@ class _ProductsListPageState extends State<ProductsListPage> {
               textDirection: TextDirection.ltr,
               children: [
                 _headerButton('assets/icons/products/top_cancel.png', 126, () {
-                  // إغلاق: closes the البضاعة tab and returns to ابدأ مع صفو.
-                  context.go(AppRoutes.home);
+                  // إغلاق: closes the البضاعة tab and returns to the home tab.
+                  removeCurrentAppTab(context);
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(AppRoutes.home);
+                  }
                 }),
                 _gap(7),
                 _headerButton('assets/icons/products/top_refresh.png', 126, () {
@@ -682,7 +694,13 @@ class _ProductsListPageState extends State<ProductsListPage> {
           ),
         ),
         const SizedBox(height: 2),
-        Expanded(child: _buildWarehouseBox()),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) => constraints.maxHeight < 49
+                ? const SizedBox.shrink()
+                : _buildWarehouseBox(),
+          ),
+        ),
       ],
     );
   }
@@ -806,7 +824,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
       color: isHeader
           ? const Color(0xFFDDDDDD)
           : green
-          ? const Color(0xFF30D25B)
+          ? const Color(0xFF8DCDE2)
           : Colors.white,
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 5),
@@ -1006,9 +1024,9 @@ class _ProductsListPageState extends State<ProductsListPage> {
     return HoverBuilder(
       builder: (context, hovered) {
         final active = selected || hovered;
-        final background = active ? const Color(0xFF30D25B) : zebra;
+        final background = active ? const Color(0xFF8DCDE2) : zebra;
         final separator = active
-            ? const Color(0xFF94D8A6)
+            ? const Color(0xFF8DCDE2)
             : const Color(0xFFD6D6D6);
         return SizedBox(
           height: 27,
@@ -1109,7 +1127,7 @@ class _ProductsListPageState extends State<ProductsListPage> {
           for (var i = 1; i < _cols.length; i++) ...[
             Container(
               width: _cols[i].width,
-              color: i == 3 ? const Color(0xFF30D25B) : const Color(0xFFDDDDDD),
+              color: i == 3 ? const Color(0xFF8DCDE2) : const Color(0xFFDDDDDD),
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 5),
               child: Text(

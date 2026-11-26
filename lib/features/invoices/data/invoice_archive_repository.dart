@@ -1,8 +1,8 @@
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/invoices/domain/invoice_archive_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/invoices/domain/invoice_archive_models.dart';
 
 /// Data access for the الفواتير document archive.
 ///

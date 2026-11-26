@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/features/stocktaking/data/stocktaking_repository.dart';
-import 'package:inventory_app/features/stocktaking/domain/stocktaking_models.dart';
-import 'package:inventory_app/features/warehouse_ops/data/warehouse_ops_repository.dart';
-import 'package:inventory_app/features/warehouse_ops/domain/warehouse_op_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/features/stocktaking/data/stocktaking_repository.dart';
+import 'package:safwa/features/stocktaking/domain/stocktaking_models.dart';
+import 'package:safwa/features/warehouse_ops/data/warehouse_ops_repository.dart';
+import 'package:safwa/features/warehouse_ops/domain/warehouse_op_models.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 void main() {

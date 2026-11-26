@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:inventory_app/app/app.dart';
+import 'package:safwa/app/app.dart';
 
 void main() {
   testWidgets('Dashboard renders on a desktop surface', (

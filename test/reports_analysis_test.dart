@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:inventory_app/features/reports/data/profit_loss_repository.dart';
-import 'package:inventory_app/features/reports/data/purchase_analysis_repository.dart';
-import 'package:inventory_app/features/reports/data/sales_analysis_repository.dart';
-import 'package:inventory_app/features/reports/domain/profit_loss_models.dart';
-import 'package:inventory_app/features/reports/domain/purchase_analysis_models.dart';
-import 'package:inventory_app/features/reports/domain/sales_analysis_models.dart';
+import 'package:safwa/features/reports/data/profit_loss_repository.dart';
+import 'package:safwa/features/reports/data/purchase_analysis_repository.dart';
+import 'package:safwa/features/reports/data/sales_analysis_repository.dart';
+import 'package:safwa/features/reports/domain/profit_loss_models.dart';
+import 'package:safwa/features/reports/domain/purchase_analysis_models.dart';
+import 'package:safwa/features/reports/domain/sales_analysis_models.dart';
 
 const String _schema = '''
 CREATE TABLE accounts (

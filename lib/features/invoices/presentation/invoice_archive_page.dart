@@ -6,14 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/shop_dialog_kit.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
-import 'package:inventory_app/features/invoices/data/invoice_archive_repository.dart';
-import 'package:inventory_app/features/invoices/domain/invoice_archive_models.dart';
-import 'package:inventory_app/features/products/presentation/export_dialog.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/shop_dialog_kit.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/features/invoices/data/invoice_archive_repository.dart';
+import 'package:safwa/features/invoices/domain/invoice_archive_models.dart';
+import 'package:safwa/features/products/presentation/export_dialog.dart';
 
 part 'invoice_archive_layout.dart';
 part 'invoice_archive_table.dart';
@@ -37,7 +37,9 @@ enum ArchiveSearchMode { general, advanced }
 /// الفواتير — the document archive. Every tab reads one real document family
 /// and every action uses the same tables as the document screens.
 class InvoiceArchivePage extends StatefulWidget {
-  const InvoiceArchivePage({super.key});
+  const InvoiceArchivePage({super.key, this.initialType});
+
+  final String? initialType;
 
   @override
   State<InvoiceArchivePage> createState() => _InvoiceArchivePageState();
@@ -98,6 +100,12 @@ class _InvoiceArchivePageState extends State<InvoiceArchivePage> {
   @override
   void initState() {
     super.initState();
+    for (final type in ArchiveDocType.values) {
+      if (type.name == widget.initialType) {
+        _type = type;
+        break;
+      }
+    }
     _invoiceNumber = TextEditingController();
     _exactNumber = TextEditingController();
     _partyName = TextEditingController();
@@ -185,7 +193,14 @@ class _InvoiceArchivePageState extends State<InvoiceArchivePage> {
     );
   }
 
-  void _close() => context.go('/');
+  void _close() {
+    removeCurrentAppTab(context);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
 
   String _errorText(Object error) {
     if (error is ArchiveException) return error.message;

@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/features/reports/domain/sales_analysis_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/features/reports/domain/sales_analysis_models.dart';
 
 /// Builds تقرير تحليل المبيعات from the real sales tables.
 ///

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -6,22 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/app/widgets/product_search_field.dart';
-import 'package:inventory_app/app/widgets/shared_data_grid.dart';
-import 'package:inventory_app/app/widgets/shop_command_rail.dart';
-import 'package:inventory_app/app/widgets/shop_dialog_kit.dart';
-import 'package:inventory_app/app/widgets/shop_dialogs.dart';
-import 'package:inventory_app/app/widgets/shop_footer_bar.dart';
-import 'package:inventory_app/app/widgets/document_custom_fields.dart';
-import 'package:inventory_app/core/services/shop_preferences.dart';
-import 'package:inventory_app/core/security/guarded_actions.dart';
-import 'package:inventory_app/core/services/database_service.dart';
-import 'package:inventory_app/features/accounts/presentation/print_preview_dialog.dart';
-import 'package:inventory_app/features/purchases/data/purchase_repository.dart';
-import 'package:inventory_app/features/purchases/domain/purchase_models.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/product_search_field.dart';
+import 'package:safwa/app/widgets/shared_data_grid.dart';
+import 'package:safwa/app/widgets/shop_command_rail.dart';
+import 'package:safwa/app/widgets/shop_dialog_kit.dart';
+import 'package:safwa/app/widgets/shop_dialogs.dart';
+import 'package:safwa/app/widgets/document_custom_fields.dart';
+import 'package:safwa/core/services/shop_preferences.dart';
+import 'package:safwa/core/security/guarded_actions.dart';
+import 'package:safwa/core/services/database_service.dart';
+import 'package:safwa/features/accounts/presentation/print_preview_dialog.dart';
+import 'package:safwa/features/purchases/data/purchase_repository.dart';
+import 'package:safwa/features/purchases/domain/purchase_models.dart';
 
 part 'purchase_layout.dart';
 part 'purchase_table.dart';
@@ -288,6 +287,7 @@ class _PurchasesPageState extends State<PurchasesPage> {
   }
 
   void _close() {
+    removeCurrentAppTab(context);
     if (context.canPop()) {
       context.pop();
     } else {
@@ -1139,18 +1139,9 @@ class _PurchasesPageState extends State<PurchasesPage> {
       extraTabWidth: 201,
       child: Column(
         children: [
-          Expanded(
-            child: Row(
-              textDirection: TextDirection.ltr,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: _buildMain()),
-                _buildRightStrip(),
-              ],
-            ),
-          ),
+          _buildDexefToolbar(),
+          Expanded(child: _buildMain()),
           _buildTotalsBar(),
-          _buildFooter(),
         ],
       ),
     );
@@ -1161,31 +1152,12 @@ class _PurchasesPageState extends State<PurchasesPage> {
       color: Colors.white,
       child: Column(
         children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerRight,
-            child: SizedBox(width: 882, height: 136, child: _buildTopBlock()),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+            child: _buildTopBlock(),
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, c) {
-                const designWidth = 882.0;
-                if (c.maxWidth >= designWidth - 0.5) {
-                  return _buildTableArea();
-                }
-                return FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.topRight,
-                  child: SizedBox(
-                    width: designWidth,
-                    height: 618,
-                    child: _buildTableArea(),
-                  ),
-                );
-              },
-            ),
-          ),
+          const Divider(height: 1, color: Color(0xFFD8DEE7)),
+          Expanded(child: _buildTableArea()),
         ],
       ),
     );

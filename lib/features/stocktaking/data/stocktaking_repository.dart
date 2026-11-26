@@ -1,8 +1,8 @@
-import 'package:inventory_app/core/database/sqlite_database.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/core/services/warehouse_stock.dart';
-import 'package:inventory_app/core/utils/constants.dart';
-import 'package:inventory_app/features/stocktaking/domain/stocktaking_models.dart';
+import 'package:safwa/core/database/sqlite_database.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/core/services/warehouse_stock.dart';
+import 'package:safwa/core/utils/constants.dart';
+import 'package:safwa/features/stocktaking/domain/stocktaking_models.dart';
 
 /// Data access for the جرد مخزن (warehouse stocktaking) screen.
 ///

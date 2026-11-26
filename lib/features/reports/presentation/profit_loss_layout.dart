@@ -556,7 +556,7 @@ extension _ProfitLossLayout on _ProfitLossPageState {
     final textColor = isHeader
         ? Colors.white
         : isProfit
-        ? const Color(0xFF167A31)
+        ? const Color(0xFF43B5DB)
         : _kInk;
     return Container(
       height: _kStatementRowHeight,
@@ -565,7 +565,7 @@ extension _ProfitLossLayout on _ProfitLossPageState {
         color: background,
         border: Border(
           bottom: BorderSide(
-            color: isHeader ? const Color(0xFF23A846) : _kRowLine,
+            color: isHeader ? const Color(0xFF43B5DB) : _kRowLine,
           ),
           top: index == 0
               ? BorderSide.none

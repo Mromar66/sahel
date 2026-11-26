@@ -4,12 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 
-import 'package:inventory_app/app/shell/app_top_bar.dart';
-import 'package:inventory_app/app/theme/shop_colors.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/features/products/presentation/export_dialog.dart';
-import 'package:inventory_app/features/reports/data/daily_movement_repository.dart';
-import 'package:inventory_app/features/reports/domain/daily_movement_models.dart';
+import 'package:safwa/app/shell/app_top_bar.dart';
+import 'package:safwa/app/theme/shop_colors.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/features/products/presentation/export_dialog.dart';
+import 'package:safwa/features/reports/data/daily_movement_repository.dart';
+import 'package:safwa/features/reports/domain/daily_movement_models.dart';
 
 part 'daily_movement_layout.dart';
 part 'daily_movement_table.dart';
@@ -159,7 +159,14 @@ class _DailyMovementPageState extends State<DailyMovementPage> {
 
   void _rebuild(VoidCallback fn) => setState(fn);
 
-  void _close() => context.go('/');
+  void _close() {
+    removeCurrentAppTab(context);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
 
   void _refreshFilterLists() {
     try {

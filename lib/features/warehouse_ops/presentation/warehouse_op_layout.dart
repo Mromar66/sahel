@@ -307,7 +307,7 @@ extension _WarehouseOpLayout on _WarehouseOpPageState {
               const Icon(
                 Icons.warehouse_outlined,
                 size: 18,
-                color: Color(0xFF11441F),
+                color: Color(0xFF248EB2),
               ),
               const SizedBox(width: 7),
               if (label != null) ...[
@@ -337,7 +337,7 @@ extension _WarehouseOpLayout on _WarehouseOpPageState {
                 const Icon(
                   Icons.arrow_drop_down,
                   size: 20,
-                  color: Color(0xFF11441F),
+                  color: Color(0xFF248EB2),
                 ),
             ],
           ),
@@ -528,7 +528,7 @@ extension _WarehouseOpLayout on _WarehouseOpPageState {
             height: 37,
             color: hovered ? kHoverYellow : _kYellow,
             alignment: Alignment.center,
-            child: const Icon(Icons.check, size: 26, color: Color(0xFF42B460)),
+            child: const Icon(Icons.check, size: 26, color: Color(0xFF43B5DB)),
           ),
         ),
       ),
@@ -690,12 +690,12 @@ extension _WarehouseOpLayout on _WarehouseOpPageState {
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             clipBehavior: Clip.antiAlias,
             child: Image.asset(
-              'assets/icons/logo.png',
+              'assets/icons/safwa_logo.png',
               width: 120,
               height: 119,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stack) => Container(
-                color: const Color(0xFF27B04C),
+                color: const Color(0xFF43B5DB),
                 child: const Icon(
                   Icons.shopping_cart,
                   size: 62,
@@ -868,7 +868,7 @@ extension _WarehouseOpLayout on _WarehouseOpPageState {
                 height: 9,
                 decoration: BoxDecoration(
                   color: _applyStock
-                      ? const Color(0xFF1F9D41)
+                      ? const Color(0xFF43B5DB)
                       : const Color(0xFF2B2B2B),
                   shape: BoxShape.circle,
                 ),
@@ -949,7 +949,7 @@ extension _WarehouseOpLayout on _WarehouseOpPageState {
         children: [
           Expanded(
             child: Text(
-              'هذه نسخة تجريبية غير مرخصة. للتعرّف على برنامج صفو ومدى ملاءمته لمشروعك، '
+              'هذه نسخة تجريبية غير مرخصة. للتعرّف على برنامج Safwa ومدى ملاءمته لمشروعك، '
               'ستتوقف بعد فترة من الاستخدام.',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

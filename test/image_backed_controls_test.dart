@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
 
 void main() {
   testWidgets('image-backed toolbar actions are accessible real buttons', (

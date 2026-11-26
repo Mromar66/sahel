@@ -1,22 +1,25 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
-import 'package:inventory_app/app/widgets/document_custom_fields.dart';
-import 'package:inventory_app/app/widgets/hover_widgets.dart';
-import 'package:inventory_app/core/services/document_custom_fields.dart';
-import 'package:inventory_app/features/accounts/data/accounts_repo.dart';
-import 'package:inventory_app/features/accounts/domain/account_record.dart';
-import 'package:inventory_app/features/accounts/presentation/accounts_ui.dart';
+import 'package:safwa/app/widgets/document_custom_fields.dart';
+import 'package:safwa/app/widgets/hover_widgets.dart';
+import 'package:safwa/core/services/document_custom_fields.dart';
+import 'package:safwa/features/accounts/data/accounts_repo.dart';
+import 'package:safwa/features/accounts/domain/account_record.dart';
+import 'package:safwa/features/accounts/presentation/accounts_ui.dart';
 
 /// Green account form floating over the accounts list — replica of the
 /// reference dialog: name + account nature radios, four green panels
 /// (الرصيد الافتتاحي / بيانات الاتصال / أكواد وتصنيفات / فواتير البيع / أخرى)
 /// and the حفظ / حفظ + جديد / تراجع buttons.
 class AccountFormDialog extends StatefulWidget {
-  const AccountFormDialog({super.key, this.account});
+  const AccountFormDialog({
+    super.key,
+    this.account,
+    this.initialKind = 'customer',
+  });
 
   final AccountRecord? account;
+  final String initialKind;
 
   @override
   State<AccountFormDialog> createState() => _AccountFormDialogState();
@@ -69,7 +72,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
     );
     _maxDebt = TextEditingController(text: '${a?.maxDebt ?? 0}');
     _notes = TextEditingController(text: a?.notes ?? '');
-    _kind = a?.kind ?? 'customer';
+    _kind = a?.kind ?? widget.initialKind;
     _categoryId = a?.categoryId;
     _balanceDate = a?.balanceDate ?? DateTime.now();
     _underReview = a?.underReview ?? false;
@@ -222,15 +225,6 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final viewport = MediaQuery.sizeOf(context);
-    final dialogWidth = math.min(
-      992.0,
-      (viewport.width - 24).clamp(280.0, 992.0).toDouble(),
-    );
-    final dialogHeight = math.min(
-      630.0,
-      (viewport.height - 24).clamp(0.0, 630.0).toDouble(),
-    );
     return Directionality(
       textDirection: TextDirection.rtl,
       child: withPlainInputs(
@@ -238,11 +232,11 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
           backgroundColor: Colors.transparent,
           insetPadding: EdgeInsets.zero,
           child: Container(
-            width: dialogWidth,
-            height: dialogHeight,
+            width: 992,
+            height: 630,
             decoration: BoxDecoration(
               color: kAcctGreen,
-              border: Border.all(color: const Color(0xFF27A849), width: 1.5),
+              border: Border.all(color: const Color(0xFF43B5DB), width: 1.5),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x44000000),
@@ -293,7 +287,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
                 height: 44,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border.all(color: const Color(0xFF9FE3B1)),
+                  border: Border.all(color: const Color(0xFFD9E8EC)),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -389,7 +383,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
                       child: Icon(
                         Icons.check,
                         size: 10,
-                        color: Color(0xFF2FB753),
+                        color: Color(0xFF43B5DB),
                       ),
                     )
                   : null,
@@ -504,7 +498,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
                   const Icon(
                     Icons.calendar_month,
                     size: 14,
-                    color: Color(0xFF2FB753),
+                    color: Color(0xFF43B5DB),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -709,7 +703,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
                     ? const Icon(
                         Icons.check,
                         size: 11,
-                        color: Color(0xFF2FB753),
+                        color: Color(0xFF43B5DB),
                       )
                     : null,
               ),
@@ -771,53 +765,42 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
   }
 
   Widget _buildButtons() {
-    return LayoutBuilder(
-      builder: (context, constraints) => FittedBox(
-        fit: BoxFit.scaleDown,
-        child: SizedBox(
-          width: math.max(850.0, constraints.maxWidth),
-          child: Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              TextButton.icon(
-                onPressed: _saving ? null : _editCustomFields,
-                icon: const Icon(Icons.tune, size: 15),
-                label: const Text(
-                  'حقول إضافية',
-                  style: TextStyle(fontSize: 11),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFE8E8E8),
-                  foregroundColor: Colors.black,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Spacer(),
-              _saveButton(
-                label: 'حفظ + جديد',
-                shortcut: 'CTRL + ENTER',
-                yellow: false,
-                glyph: Icons.add,
-                onTap: _saving ? null : () => _save(newAfter: true),
-              ),
-              const SizedBox(width: 10),
-              _saveButton(
-                label: 'حفظ',
-                shortcut: 'ENTER',
-                yellow: true,
-                glyph: Icons.check,
-                onTap: _saving ? null : () => _save(),
-              ),
-              const SizedBox(width: 40),
-              _cancelButton(),
-              const Spacer(),
-            ],
+    return Row(
+      textDirection: TextDirection.rtl,
+      children: [
+        TextButton.icon(
+          onPressed: _saving ? null : _editCustomFields,
+          icon: const Icon(Icons.tune, size: 15),
+          label: const Text('حقول إضافية', style: TextStyle(fontSize: 11)),
+          style: TextButton.styleFrom(
+            backgroundColor: const Color(0xFFE8E8E8),
+            foregroundColor: Colors.black,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
+            ),
           ),
         ),
-      ),
+        const SizedBox(width: 8),
+        const Spacer(),
+        _saveButton(
+          label: 'حفظ + جديد',
+          shortcut: 'CTRL + ENTER',
+          yellow: false,
+          glyph: Icons.add,
+          onTap: _saving ? null : () => _save(newAfter: true),
+        ),
+        const SizedBox(width: 10),
+        _saveButton(
+          label: 'حفظ',
+          shortcut: 'ENTER',
+          yellow: true,
+          glyph: Icons.check,
+          onTap: _saving ? null : () => _save(),
+        ),
+        const SizedBox(width: 40),
+        _cancelButton(),
+        const Spacer(),
+      ],
     );
   }
 
@@ -869,7 +852,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
         const SizedBox(height: 3),
         Text(
           shortcut,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF1F4A2A)),
+          style: const TextStyle(fontSize: 10, color: Color(0xFF248EB2)),
         ),
       ],
     );
